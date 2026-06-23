@@ -1,0 +1,51 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+.home-container{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f4f6f9;
+}
+
+.home-box{
+    width:400px;
+    background:white;
+    padding:40px;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,0.2);
+    text-align:center;
+}
+
+.home-box h1{
+    margin-bottom:40px;
+    color:#333;
+}
+
+.btn{
+    width:100%;
+    padding:15px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    margin-bottom:20px;
+}
+
+.admin-btn{
+    background:#007bff;
+    color:white;
+}
+
+.vendor-btn{
+    background:#28a745;
+    color:white;
+}
+
+.btn:hover{
+    opacity:0.9;
+}
