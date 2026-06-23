@@ -7,10 +7,11 @@ function Home() {
 
   return (
     <div className="home-container">
-
       <div className="home-box">
 
-        <h1>Vendor Management System</h1>
+        <h1 className="home-title">
+          Vendor Management System
+        </h1>
 
         <button
           className="btn admin-btn"
@@ -27,7 +28,6 @@ function Home() {
         </button>
 
       </div>
-
     </div>
   );
 }

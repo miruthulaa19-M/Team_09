@@ -5,47 +5,55 @@
 }
 
 .home-container{
-    height:100vh;
+    min-height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    background:#f4f6f9;
+    background:#dfe2e6;
 }
 
+/* Increased page/card length */
 .home-box{
-    width:400px;
+    width:650px;
+    min-height:550px;
     background:white;
-    padding:40px;
-    border-radius:15px;
-    box-shadow:0 0 15px rgba(0,0,0,0.2);
+    padding:60px 50px;
+    border-radius:20px;
+    box-shadow:0 0 20px rgba(0,0,0,0.15);
     text-align:center;
 }
 
-.home-box h1{
-    margin-bottom:40px;
-    color:#333;
+/* Vendor Management System */
+.home-title{
+    font-family:"Times New Roman", serif;
+    font-size:42px !important;
+    font-weight:bold;
+    color:#1f2a44;
+    margin-bottom:80px;
+    white-space:nowrap;
 }
 
+/* Buttons */
 .btn{
     width:100%;
-    padding:15px;
-    font-size:18px;
+    height:70px;
+    font-size:28px;
     border:none;
-    border-radius:10px;
+    border-radius:12px;
     cursor:pointer;
-    margin-bottom:20px;
+    margin-bottom:35px;
+    color:white;
+    transition:0.3s;
 }
 
 .admin-btn{
-    background:#007bff;
-    color:white;
+    background:#1976d2;
 }
 
 .vendor-btn{
-    background:#28a745;
-    color:white;
+    background:#1976d2;
 }
 
 .btn:hover{
-    opacity:0.9;
+    background:#1259a8;
 }
