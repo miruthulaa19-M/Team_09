@@ -1,70 +1,191 @@
-import React from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/VendorLogin.css";
 
+const emailRegex    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
+const phoneRegex    = /^\d{10}$/;
+
+const emptyReg   = { companyName: "", vendorName: "", contact: "", email: "", password: "", confirmPassword: "" };
+const emptyLogin = { email: "", password: "" };
+
+function required(val) {
+  return !val.trim() ? "This field is required" : "";
+}
+
+function validateReg(v) {
+  return {
+    companyName:     required(v.companyName),
+    vendorName:      required(v.vendorName),
+    contact:         !v.contact.trim() ? "This field is required"
+                     : !phoneRegex.test(v.contact) ? "Contact number must be exactly 10 digits" : "",
+    email:           !v.email.trim() ? "This field is required"
+                     : !emailRegex.test(v.email) ? "Email must end with @gmail.com" : "",
+    password:        !v.password.trim() ? "This field is required"
+                     : !passwordRegex.test(v.password) ? "Password must be at least 6 characters with letters and numbers" : "",
+    confirmPassword: !v.confirmPassword.trim() ? "This field is required"
+                     : v.confirmPassword !== v.password ? "Passwords do not match" : "",
+  };
+}
+
+function validateLogin(v) {
+  return {
+    email:    !v.email.trim() ? "This field is required"
+              : !emailRegex.test(v.email) ? "Email must end with @gmail.com" : "",
+    password: !v.password.trim() ? "This field is required"
+              : !passwordRegex.test(v.password) ? "Password must be at least 6 characters with letters and numbers" : "",
+  };
+}
+
 function VendorLogin() {
-
   const navigate = useNavigate();
+  const [tab, setTab]               = useState("register");
+  const [regValues, setRegValues]   = useState(emptyReg);
+  const [loginValues, setLoginValues] = useState(emptyLogin);
+  const [regErrors, setRegErrors]   = useState({});
+  const [loginErrors, setLoginErrors] = useState({});
+  const [success, setSuccess]       = useState("");
+  const [apiError, setApiError]     = useState("");
+  const [loading, setLoading]       = useState(false);
 
-  const handleLogin = () => {
-
-    // Later you can add validation
-
-    navigate("/vendor-dashboard");
-
+  const switchTab = (t) => {
+    setTab(t);
+    setSuccess("");
+    setApiError("");
+    setRegErrors({});
+    setLoginErrors({});
   };
 
+  const handleRegChange   = (e) => { const { name, value } = e.target; setRegValues((v) => ({ ...v, [name]: value })); };
+  const handleLoginChange = (e) => { const { name, value } = e.target; setLoginValues((v) => ({ ...v, [name]: value })); };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setSuccess("");
+    setApiError("");
+    const errs = validateReg(regValues);
+    setRegErrors(errs);
+    if (Object.values(errs).some(Boolean)) return;
+
+    setLoading(true);
+    try {
+      const res  = await fetch("/api/register", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          companyName: regValues.companyName,
+          vendorName:  regValues.vendorName,
+          contact:     regValues.contact,
+          email:       regValues.email,
+          password:    regValues.password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setApiError(data.error); return; }
+      setSuccess(data.message);
+      setRegValues(emptyReg);
+    } catch {
+      setApiError("Server unreachable. Please make sure the backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setSuccess("");
+    setApiError("");
+    const errs = validateLogin(loginValues);
+    setLoginErrors(errs);
+    if (Object.values(errs).some(Boolean)) return;
+
+    setLoading(true);
+    try {
+      const res  = await fetch("/api/login", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(loginValues),
+      });
+      const data = await res.json();
+      if (!res.ok) { setApiError(data.error); return; }
+      setSuccess(data.message);
+    } catch {
+      setApiError("Server unreachable. Please make sure the backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const regFields = [
+    { name: "companyName",     label: "Company Name",     type: "text",     placeholder: "Enter Company Name" },
+    { name: "vendorName",      label: "Vendor Name",      type: "text",     placeholder: "Enter Vendor Name" },
+    { name: "contact",         label: "Contact Number",   type: "tel",      placeholder: "10-digit number" },
+    { name: "email",           label: "Email",            type: "email",    placeholder: "example@gmail.com" },
+    { name: "password",        label: "Password",         type: "password", placeholder: "Enter Password" },
+    { name: "confirmPassword", label: "Confirm Password", type: "password", placeholder: "Re-enter Password" },
+  ];
+
   return (
-
-    <div className="login-container">
-
-      <div className="login-box">
-
-        <h1>Vendor Login</h1>
-
-        <div className="input-group">
-
-          <label>Email ID</label>
-
-          <input
-            type="email"
-            placeholder="Enter Email ID"
-          />
-
-        </div>
-
-        <div className="input-group">
-
-          <label>Password</label>
-
-          <input
-            type="password"
-            placeholder="Enter Password"
-          />
-
-        </div>
-
-        <div className="forgot">
-
-          <a href="#">Forgot Password?</a>
-
-        </div>
-
-        <button
-          className="login-btn"
-          onClick={handleLogin}
-        >
-
-          Login
-
+    <div className="vendor-container">
+      <div className="vendor-box">
+        <button className="back-arrow" onClick={() => navigate("/")} aria-label="Back">
+          &#8592; Back
         </button>
 
+        <h1 className="brand-title">Vendor Portal</h1>
+
+        <div className="tab-bar">
+          <button className={`tab-btn${tab === "register" ? " tab-active" : ""}`} onClick={() => switchTab("register")} type="button">
+            New Vendor
+          </button>
+          <button className={`tab-btn${tab === "login" ? " tab-active" : ""}`} onClick={() => switchTab("login")} type="button">
+            Already Registered
+          </button>
+        </div>
+
+        {success  && <p className="success-message">{success}</p>}
+        {apiError && <p className="api-error-message">{apiError}</p>}
+
+        {tab === "register" ? (
+          <form onSubmit={handleRegister} noValidate>
+            {regFields.map(({ name, label, type, placeholder }) => (
+              <div className="input-group" key={name}>
+                <label htmlFor={`reg-${name}`}>{label}</label>
+                <input
+                  id={`reg-${name}`}
+                  name={name}
+                  type={type}
+                  placeholder={placeholder}
+                  value={regValues[name]}
+                  onChange={handleRegChange}
+                />
+                {regErrors[name] && <span className="error-message">{regErrors[name]}</span>}
+              </div>
+            ))}
+            <button className="submit-btn" type="submit" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleLogin} noValidate>
+            <div className="input-group">
+              <label htmlFor="login-email">Email</label>
+              <input id="login-email" name="email" type="email" placeholder="example@gmail.com" value={loginValues.email} onChange={handleLoginChange} />
+              {loginErrors.email && <span className="error-message">{loginErrors.email}</span>}
+            </div>
+            <div className="input-group">
+              <label htmlFor="login-password">Password</label>
+              <input id="login-password" name="password" type="password" placeholder="Enter Password" value={loginValues.password} onChange={handleLoginChange} />
+              {loginErrors.password && <span className="error-message">{loginErrors.password}</span>}
+            </div>
+            <button className="submit-btn" type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+        )}
       </div>
-
     </div>
-
   );
-
 }
 
 export default VendorLogin;

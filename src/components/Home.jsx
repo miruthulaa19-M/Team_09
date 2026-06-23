@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.css";
 
@@ -8,25 +7,22 @@ function Home() {
   return (
     <div className="home-container">
       <div className="home-box">
-
-        <h1 className="home-title">
-          Vendor Management System
-        </h1>
+        <h1 className="home-logo">Vendor Portal</h1>
+        <p className="home-subtitle">Vendor Management System</p>
 
         <button
-          className="btn admin-btn"
+          className="home-btn home-btn-primary"
           onClick={() => navigate("/admin-login")}
         >
           Admin Login
         </button>
 
         <button
-          className="btn vendor-btn"
-          onClick={() => navigate("/vendor-register")}
+          className="home-btn home-btn-secondary"
+          onClick={() => navigate("/vendor-login")}
         >
           Vendor Login
         </button>
-
       </div>
     </div>
   );
