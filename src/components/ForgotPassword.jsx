@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "../styles/VendorLogin.css";
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
 function ForgotPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const role = searchParams.get("role") || "vendor";
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -27,7 +29,8 @@ function ForgotPassword() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/forgot-password", {
+      const endpoint = role === "admin" ? "/api/admin-forgot-password" : "/api/forgot-password";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -49,7 +52,7 @@ function ForgotPassword() {
   return (
     <div className="vendor-container">
       <div className="vendor-box">
-        <button className="back-arrow" onClick={() => navigate("/vendor-login")} aria-label="Back">
+        <button className="back-arrow" onClick={() => navigate(role === "admin" ? "/admin-login" : "/vendor-login")} aria-label="Back">
           &#8592; Back to Login
         </button>
 
