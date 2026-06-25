@@ -148,7 +148,7 @@ function AdminLogin() {
                 value={loginValues.password} onChange={handleLoginChange} />
               {loginErrors.password && <span className="error-message">{loginErrors.password}</span>}
             </div>
-            <div className="forgot"><a href="#">Forgot Password?</a></div>
+            <div className="forgot"><span onClick={() => navigate("/forgot-password?role=admin")} style={{cursor:"pointer"}}>Forgot Password?</span></div>
             <button className="signup-btn" type="submit" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </button>

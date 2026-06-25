@@ -9,14 +9,18 @@ const app  = express();
 const PORT = 5000;
 const JWT_SECRET = "your_secret_key_here_change_in_production";
 
-// Nodemailer transporter
-// TODO: Replace with your actual Gmail credentials
+// ────────────────────────────────────────────────
+// NODEMAILER SETUP
+// Step 1: Enable 2-Step Verification on your Google account
+// Step 2: Go to Google Account → Security → App passwords
+// Step 3: Generate a 16-char app password and paste below (no spaces)
+// ────────────────────────────────────────────────
+const SENDER_EMAIL = "miruthulaa358@gmail.com";
+const SENDER_PASS  = "eokrpsgwlkqqyzum";
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  auth: {
-    user: "PUT_YOUR_ACTUAL_GMAIL_HERE@gmail.com",     // Example: john.doe@gmail.com
-    pass: "PUT_YOUR_8_CHAR_APP_PASSWORD_HERE"         // Example: abcdefghijklmnop (no spaces)
-  }
+  auth: { user: SENDER_EMAIL, pass: SENDER_PASS }
 });
 
 app.use(cors({ origin: "http://localhost:5173" }));
@@ -26,16 +30,13 @@ app.use(express.json());
 // FORGOT PASSWORD & RESET
 // ════════════════════════════════════════════════
 
-// POST /api/forgot-password
-app.post("/api/forgot-password", (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: "Email is required." });
-
-  db.get("SELECT id FROM vendors WHERE email = ?", [email], (err, row) => {
-    if (err) return res.status(500).json({ error: "Database error." });
+function sendResetEmail(email, role, res) {
+  const table = role === "admin" ? "admins" : "vendors";
+  db.get(`SELECT id FROM ${table} WHERE email = ?`, [email], (err, row) => {
+    if (err)  return res.status(500).json({ error: "Database error." });
     if (!row) return res.status(404).json({ error: "Email not registered." });
 
-    const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "15m" });
+    const token     = jwt.sign({ email, role }, JWT_SECRET, { expiresIn: "15m" });
     const expiresAt = Date.now() + 15 * 60 * 1000;
 
     db.run(
@@ -46,7 +47,7 @@ app.post("/api/forgot-password", (req, res) => {
 
         const resetUrl = `http://localhost:5173/reset-password/${token}`;
         const mailOptions = {
-          from: "PUT_YOUR_ACTUAL_GMAIL_HERE@gmail.com",  // Must match the 'user' above
+          from: SENDER_EMAIL,
           to: email,
           subject: "Reset Your Password",
           html: `
@@ -63,7 +64,7 @@ app.post("/api/forgot-password", (req, res) => {
         transporter.sendMail(mailOptions, (err) => {
           if (err) {
             console.error("❌ Email send error:", err.message);
-            return res.status(500).json({ error: "Failed to send email." });
+            return res.status(500).json({ error: "Failed to send email. Check Gmail App Password setup." });
           }
           console.log(`✅ Reset email sent to ${email}`);
           res.json({ message: "Password reset link sent to your email." });
@@ -71,6 +72,20 @@ app.post("/api/forgot-password", (req, res) => {
       }
     );
   });
+}
+
+// POST /api/forgot-password  (vendor)
+app.post("/api/forgot-password", (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+  sendResetEmail(email, "vendor", res);
+});
+
+// POST /api/admin-forgot-password  (admin)
+app.post("/api/admin-forgot-password", (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+  sendResetEmail(email, "admin", res);
 });
 
 // GET /api/reset-password/:token - Verify token validity
@@ -81,7 +96,7 @@ app.get("/api/reset-password/:token", (req, res) => {
     "SELECT * FROM reset_tokens WHERE token = ? AND used = 0",
     [token],
     (err, row) => {
-      if (err) return res.status(500).json({ error: "Database error." });
+      if (err)  return res.status(500).json({ error: "Database error." });
       if (!row) return res.status(400).json({ error: "Invalid or expired reset link." });
       if (Date.now() > row.expires_at)
         return res.status(400).json({ error: "Reset link has expired." });
@@ -107,20 +122,22 @@ app.post("/api/reset-password/:token", async (req, res) => {
     "SELECT * FROM reset_tokens WHERE token = ? AND used = 0",
     [token],
     async (err, row) => {
-      if (err) return res.status(500).json({ error: "Database error." });
+      if (err)  return res.status(500).json({ error: "Database error." });
       if (!row) return res.status(400).json({ error: "Invalid or expired reset link." });
       if (Date.now() > row.expires_at)
         return res.status(400).json({ error: "Reset link has expired." });
 
+      let decoded;
       try {
-        jwt.verify(token, JWT_SECRET);
+        decoded = jwt.verify(token, JWT_SECRET);
       } catch {
         return res.status(400).json({ error: "Invalid or expired reset link." });
       }
 
+      const table  = decoded.role === "admin" ? "admins" : "vendors";
       const hashed = await bcrypt.hash(password, 10);
 
-      db.run("UPDATE vendors SET password = ? WHERE email = ?", [hashed, row.email], (err) => {
+      db.run(`UPDATE ${table} SET password = ? WHERE email = ?`, [hashed, row.email], (err) => {
         if (err) return res.status(500).json({ error: "Failed to update password." });
 
         db.run("UPDATE reset_tokens SET used = 1 WHERE token = ?", [token], (err) => {
@@ -341,7 +358,7 @@ app.get("/api/quotations/vendor/:vendor_id", (req, res) => {
 
 // PUT /api/quotations/:id/status
 app.put("/api/quotations/:id/status", (req, res) => {
-  const { status, rating } = req.body;   // status: 'Accepted' | 'Rejected'
+  const { status, rating } = req.body;
   if (!["Accepted", "Rejected"].includes(status))
     return res.status(400).json({ error: "Status must be Accepted or Rejected." });
 
@@ -349,7 +366,6 @@ app.put("/api/quotations/:id/status", (req, res) => {
     if (err)  return res.status(500).json({ error: "Database error." });
     if (!q)   return res.status(404).json({ error: "Quotation not found." });
 
-    // Update quotation status + optional rating
     db.run(
       "UPDATE quotations SET status=?, rating=? WHERE id=?",
       [status, rating || null, req.params.id],
@@ -357,7 +373,6 @@ app.put("/api/quotations/:id/status", (req, res) => {
         if (err) return res.status(500).json({ error: "Failed to update status." });
 
         if (status === "Accepted") {
-          // Insert rating row
           if (rating) {
             db.run(
               "INSERT OR REPLACE INTO ratings (quotation_id, vendor_id, stars) VALUES (?,?,?)",
@@ -365,7 +380,6 @@ app.put("/api/quotations/:id/status", (req, res) => {
             );
           }
 
-          // Auto-insert into purchase_history
           db.get("SELECT company_name FROM vendors WHERE id=?", [q.vendor_id], (err, vendor) => {
             if (err || !vendor) return res.json({ message: "Status updated." });
 
@@ -441,15 +455,15 @@ app.get("/api/ratings/vendor/:vendor_id", (req, res) => {
 app.get("/api/dashboard/admin", (req, res) => {
   const stats = {};
 
-  db.get("SELECT COUNT(*) AS total FROM vendors",                          [], (err, r) => {
+  db.get("SELECT COUNT(*) AS total FROM vendors",          [], (err, r) => {
     if (err) return res.status(500).json({ error: "Database error." });
     stats.total_vendors = r.total;
 
-    db.get("SELECT COUNT(*) AS total FROM quotations",                     [], (err, r) => {
+    db.get("SELECT COUNT(*) AS total FROM quotations",     [], (err, r) => {
       if (err) return res.status(500).json({ error: "Database error." });
       stats.total_quotations = r.total;
 
-      db.get("SELECT COUNT(*) AS total FROM purchase_history",             [], (err, r) => {
+      db.get("SELECT COUNT(*) AS total FROM purchase_history", [], (err, r) => {
         if (err) return res.status(500).json({ error: "Database error." });
         stats.total_purchases = r.total;
 
@@ -464,7 +478,7 @@ app.get("/api/dashboard/vendor/:vendor_id", (req, res) => {
   const vid = req.params.vendor_id;
   const stats = {};
 
-  db.get("SELECT COUNT(*) AS total FROM quotations WHERE vendor_id=?",                      [vid], (err, r) => {
+  db.get("SELECT COUNT(*) AS total FROM quotations WHERE vendor_id=?",                       [vid], (err, r) => {
     if (err) return res.status(500).json({ error: "Database error." });
     stats.total_submitted = r.total;
 
@@ -476,7 +490,7 @@ app.get("/api/dashboard/vendor/:vendor_id", (req, res) => {
         if (err) return res.status(500).json({ error: "Database error." });
         stats.total_rejected = r.total;
 
-        db.get("SELECT ROUND(AVG(stars),1) AS avg FROM ratings WHERE vendor_id=?",            [vid], (err, r) => {
+        db.get("SELECT ROUND(AVG(stars),1) AS avg FROM ratings WHERE vendor_id=?", [vid], (err, r) => {
           if (err) return res.status(500).json({ error: "Database error." });
           stats.overall_rating = r.avg || null;
 
