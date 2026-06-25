@@ -73,6 +73,7 @@ function AdminLogin() {
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setSuccess(data.message);
+      setTimeout(() => navigate("/admin-dashboard"), 800);
     } catch {
       setApiError("Server unreachable. Please make sure the backend is running.");
     } finally {
