@@ -1,97 +1,72 @@
-import React from "react";
-import "../styles/Dashboard.css";
+import { useState } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { VendorProvider } from "../context/VendorContext";
+import "../styles/AdminDashboard.css";
+
+const NAV = [
+  { to: "/admin-dashboard",                   label: "Dashboard"         },
+  { to: "/admin-dashboard/vendor-management", label: "Vendor Management" },
+  { to: "/admin-dashboard/purchase-history",  label: "Purchase History"  },
+  { to: "/admin-dashboard/profile",           label: "Profile"           },
+];
 
 function AdminDashboard() {
+  const [open, setOpen] = useState(true);
+  const navigate        = useNavigate();
+
   return (
-    <div className="dashboard-container">
-
-      {/* Sidebar */}
-
-      <div className="sidebar">
-
-        <h2>Admin Panel</h2>
-
-        <ul>
-
-          <li>Dashboard</li>
-
-          <li>Vendor Management</li>
-
-          <li>Add Vendor</li>
-
-          <li>View Vendor</li>
-
-          <li>Edit Vendor</li>
-
-          <li>Delete Vendor</li>
-
-          <li>Orders</li>
-
-          <li>Payments</li>
-
-          <li>Reports</li>
-
-          <li>Settings</li>
-
-          <li>Logout</li>
-
-        </ul>
-
-      </div>
-
-      {/* Main Content */}
-
-      <div className="main-content">
-
-        <h1>Admin Dashboard</h1>
-
-        <div className="card-container">
-
-          <div className="card">
-
-            <h2>Total Vendors</h2>
-
-            <p>120</p>
-
+    <VendorProvider>
+      <div className="ad-shell">
+        {/* ── Sidebar ── */}
+        <aside className={`ad-sidebar${open ? "" : " collapsed"}`}>
+          <div className="ad-sidebar-header">
+            {open && <span className="ad-logo">Vendor Portal</span>}
+            <button
+              className="ad-hamburger"
+              onClick={() => setOpen((o) => !o)}
+              aria-label="Toggle menu"
+            >
+              <span /><span /><span />
+            </button>
           </div>
 
-          <div className="card">
+          <nav className="ad-nav">
+            {NAV.map(({ to, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={to === "/admin-dashboard"}
+                className={({ isActive }) => `ad-nav-item${isActive ? " active" : ""}`}
+                title={!open ? label : undefined}
+              >
+                <span className="ad-nav-dot" />
+                {open && <span className="ad-nav-label">{label}</span>}
+              </NavLink>
+            ))}
+          </nav>
 
-            <h2>Active Vendors</h2>
+          <button
+            className="ad-nav-item ad-logout"
+            onClick={() => navigate("/admin-login")}
+            title={!open ? "Logout" : undefined}
+          >
+            <span className="ad-nav-dot ad-nav-dot--logout" />
+            {open && <span className="ad-nav-label">Logout</span>}
+          </button>
+        </aside>
 
-            <p>90</p>
-
-          </div>
-
-          <div className="card">
-
-            <h2>Pending Vendors</h2>
-
-            <p>30</p>
-
-          </div>
-
+        {/* ── Main ── */}
+        <div className="ad-main">
+          <header className="ad-topbar">
+            <h2 className="ad-page-title">Admin Dashboard</h2>
+            <div className="ad-admin-badge">Admin</div>
+          </header>
+          <main className="ad-content">
+            <Outlet />
+          </main>
         </div>
-
-        <div className="recent">
-
-          <h2>Recent Activities</h2>
-
-          <ul>
-
-            <li>Vendor ABC registered successfully.</li>
-
-            <li>Vendor XYZ payment completed.</li>
-
-            <li>New order created.</li>
-
-          </ul>
-
-        </div>
-
       </div>
-
-    </div>
+    </VendorProvider>
   );
 }
 
