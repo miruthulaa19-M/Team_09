@@ -1,13 +1,137 @@
 const express = require("express");
 const cors    = require("cors");
 const bcrypt  = require("bcrypt");
+const jwt     = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 const db      = require("./database");
 
 const app  = express();
 const PORT = 5000;
+const JWT_SECRET = "your_secret_key_here_change_in_production";
+
+// Nodemailer transporter
+// TODO: Replace with your actual Gmail credentials
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "PUT_YOUR_ACTUAL_GMAIL_HERE@gmail.com",     // Example: john.doe@gmail.com
+    pass: "PUT_YOUR_8_CHAR_APP_PASSWORD_HERE"         // Example: abcdefghijklmnop (no spaces)
+  }
+});
 
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
+
+// ════════════════════════════════════════════════
+// FORGOT PASSWORD & RESET
+// ════════════════════════════════════════════════
+
+// POST /api/forgot-password
+app.post("/api/forgot-password", (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+
+  db.get("SELECT id FROM vendors WHERE email = ?", [email], (err, row) => {
+    if (err) return res.status(500).json({ error: "Database error." });
+    if (!row) return res.status(404).json({ error: "Email not registered." });
+
+    const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "15m" });
+    const expiresAt = Date.now() + 15 * 60 * 1000;
+
+    db.run(
+      "INSERT INTO reset_tokens (email, token, expires_at) VALUES (?,?,?)",
+      [email, token, expiresAt],
+      (err) => {
+        if (err) return res.status(500).json({ error: "Failed to generate reset token." });
+
+        const resetUrl = `http://localhost:5173/reset-password/${token}`;
+        const mailOptions = {
+          from: "PUT_YOUR_ACTUAL_GMAIL_HERE@gmail.com",  // Must match the 'user' above
+          to: email,
+          subject: "Reset Your Password",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #FB923C;">Password Reset Request</h2>
+              <p>You requested to reset your password. Click the link below to proceed:</p>
+              <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #FB923C; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">Reset Password</a>
+              <p>This link will expire in <strong>15 minutes</strong>.</p>
+              <p>If you didn't request this, please ignore this email.</p>
+            </div>
+          `
+        };
+
+        transporter.sendMail(mailOptions, (err) => {
+          if (err) {
+            console.error("❌ Email send error:", err.message);
+            return res.status(500).json({ error: "Failed to send email." });
+          }
+          console.log(`✅ Reset email sent to ${email}`);
+          res.json({ message: "Password reset link sent to your email." });
+        });
+      }
+    );
+  });
+});
+
+// GET /api/reset-password/:token - Verify token validity
+app.get("/api/reset-password/:token", (req, res) => {
+  const { token } = req.params;
+
+  db.get(
+    "SELECT * FROM reset_tokens WHERE token = ? AND used = 0",
+    [token],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: "Database error." });
+      if (!row) return res.status(400).json({ error: "Invalid or expired reset link." });
+      if (Date.now() > row.expires_at)
+        return res.status(400).json({ error: "Reset link has expired." });
+
+      try {
+        jwt.verify(token, JWT_SECRET);
+        res.json({ message: "Token is valid.", email: row.email });
+      } catch {
+        res.status(400).json({ error: "Invalid or expired reset link." });
+      }
+    }
+  );
+});
+
+// POST /api/reset-password/:token - Update password
+app.post("/api/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  if (!password) return res.status(400).json({ error: "Password is required." });
+
+  db.get(
+    "SELECT * FROM reset_tokens WHERE token = ? AND used = 0",
+    [token],
+    async (err, row) => {
+      if (err) return res.status(500).json({ error: "Database error." });
+      if (!row) return res.status(400).json({ error: "Invalid or expired reset link." });
+      if (Date.now() > row.expires_at)
+        return res.status(400).json({ error: "Reset link has expired." });
+
+      try {
+        jwt.verify(token, JWT_SECRET);
+      } catch {
+        return res.status(400).json({ error: "Invalid or expired reset link." });
+      }
+
+      const hashed = await bcrypt.hash(password, 10);
+
+      db.run("UPDATE vendors SET password = ? WHERE email = ?", [hashed, row.email], (err) => {
+        if (err) return res.status(500).json({ error: "Failed to update password." });
+
+        db.run("UPDATE reset_tokens SET used = 1 WHERE token = ?", [token], (err) => {
+          if (err) console.error("❌ Token invalidation error:", err.message);
+          console.log(`✅ Password reset for ${row.email}`);
+          res.json({ message: "Password reset successfully." });
+        });
+      });
+    }
+  );
+});
 
 // ════════════════════════════════════════════════
 // AUTH — existing routes (unchanged)

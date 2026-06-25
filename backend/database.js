@@ -100,6 +100,20 @@ db.serialize(() => {
     else     console.log("✅ purchase_history table ready");
   });
 
+  // ── RESET TOKENS ──────────────────────────────────────────────
+  db.run(`
+    CREATE TABLE IF NOT EXISTS reset_tokens (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      email      TEXT    NOT NULL,
+      token      TEXT    NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      used       INTEGER NOT NULL DEFAULT 0
+    )
+  `, (err) => {
+    if (err) console.error("❌ reset_tokens:", err.message);
+    else     console.log("✅ reset_tokens table ready");
+  });
+
   // ── RATINGS ───────────────────────────────────────────────────
   // Vendor Portal — rating given by Admin per accepted quotation
   // Shows: Overall Rating, Individual Product Rating
