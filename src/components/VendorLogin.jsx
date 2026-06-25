@@ -181,6 +181,24 @@ function VendorLogin() {
             <button className="submit-btn" type="submit" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </button>
+            <div style={{ textAlign: "center", marginTop: "12px" }}>
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#FB923C",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontFamily: "inherit"
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </form>
         )}
       </div>

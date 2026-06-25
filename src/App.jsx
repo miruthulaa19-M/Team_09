@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home            from "./components/Home";
 import AdminLogin      from "./components/AdminLogin";
 import VendorLogin     from "./components/VendorLogin";
+import ForgotPassword  from "./components/ForgotPassword";
+import ResetPassword   from "./components/ResetPassword";
 import TestDashboard   from "./components/TestDashboard";
 import AdminDashboard  from "./components/AdminDashboard";
 import DashboardHome   from "./components/DashboardHome";
@@ -17,6 +19,8 @@ function App() {
         <Route path="/"             element={<Home />} />
         <Route path="/admin-login"  element={<AdminLogin />} />
         <Route path="/vendor-login" element={<VendorLogin />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/test-dashboard" element={<TestDashboard />} />
 
         <Route path="/admin-dashboard" element={<AdminDashboard />}>
