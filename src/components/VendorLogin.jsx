@@ -110,7 +110,13 @@ function VendorLogin() {
       });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
+      // Save vendor details to localStorage
+      localStorage.setItem("vendor_id",    data.vendor.id);
+      localStorage.setItem("vendor_name",  data.vendor.vendorName);
+      localStorage.setItem("company_name", data.vendor.companyName);
+      localStorage.setItem("vendor_email", data.vendor.email);
       setSuccess(data.message);
+      setTimeout(() => navigate("/vendor/dashboard"), 800);
     } catch {
       setApiError("Server unreachable. Please make sure the backend is running.");
     } finally {
