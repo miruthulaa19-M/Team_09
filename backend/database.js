@@ -51,11 +51,17 @@ db.serialize(() => {
       password        TEXT    NOT NULL,
       contact         TEXT    NOT NULL,
       company_address TEXT,
-      gst_number      TEXT
+      gst_number      TEXT,
+      status          TEXT NOT NULL DEFAULT 'pending',
+      category        TEXT NOT NULL DEFAULT ''
     )
   `, (err) => {
-    if (err) console.error("❌ vendors:", err.message);
-    else     console.log("✅ vendors table ready");
+    if (err) console.error("\u274c vendors:", err.message);
+    else {
+      console.log("\u2705 vendors table ready");
+      db.run("ALTER TABLE vendors ADD COLUMN status   TEXT NOT NULL DEFAULT 'pending'", () => {});
+      db.run("ALTER TABLE vendors ADD COLUMN category TEXT NOT NULL DEFAULT ''",        () => {});
+    }
   });
 
   // ── QUOTATIONS ────────────────────────────────────────────────
@@ -98,6 +104,25 @@ db.serialize(() => {
   `, (err) => {
     if (err) console.error("❌ purchase_history:", err.message);
     else     console.log("✅ purchase_history table ready");
+  });
+
+  // ── PURCHASE_ORDERS ─────────────────────────────────────────
+  // Use DROP + CREATE unconditionally — safest migration approach
+  db.run("DROP TABLE IF EXISTS purchase_orders");
+  db.run(`
+    CREATE TABLE IF NOT EXISTS purchase_orders (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      companyName TEXT    NOT NULL,
+      productName TEXT    NOT NULL,
+      category    TEXT    NOT NULL,
+      quantity    INTEGER NOT NULL,
+      amount      REAL    NOT NULL,
+      dateOfOrder TEXT    NOT NULL,
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    )
+  `, (err) => {
+    if (err) console.error("❌ purchase_orders:", err.message);
+    else     console.log("✅ purchase_orders table ready");
   });
 
   // ── RESET TOKENS ──────────────────────────────────────────────

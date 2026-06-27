@@ -602,6 +602,81 @@
 }
 
 /* ══════════════════════════════════════════
+   PURCHASE ORDERS FORM
+══════════════════════════════════════════ */
+.po-form-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 20px rgba(251, 146, 60, 0.1);
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  margin-bottom: 4px;
+}
+
+.po-form-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 18px;
+}
+
+.po-form { display: flex; flex-direction: column; gap: 14px; }
+
+.po-form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.po-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.po-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.po-field input,
+.po-field select {
+  padding: 10px 13px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #111827;
+  background: #FAFAF8;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.po-field input:focus,
+.po-field select:focus {
+  border-color: #FB923C;
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.12);
+}
+
+.po-number { font-weight: 700; color: #FB923C; }
+
+/* Inline API error */
+.api-error-inline {
+  padding: 10px 14px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.06);
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════
    ANIMATION
 ══════════════════════════════════════════ */
 @keyframes fadeInCard {

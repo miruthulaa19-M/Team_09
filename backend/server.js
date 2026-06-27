@@ -156,8 +156,8 @@ app.post("/api/reset-password/:token", async (req, res) => {
 
 // POST /api/register
 app.post("/api/register", async (req, res) => {
-  const { companyName, vendorName, contact, email, password } = req.body;
-  if (!companyName || !vendorName || !contact || !email || !password)
+  const { companyName, vendorName, contact, email, password, category } = req.body;
+  if (!companyName || !vendorName || !contact || !email || !password || !category)
     return res.status(400).json({ error: "All fields are required." });
 
   db.get("SELECT id FROM vendors WHERE email = ?", [email], async (err, row) => {
@@ -166,11 +166,11 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     db.run(
-      "INSERT INTO vendors (company_name, vendor_name, contact, email, password) VALUES (?,?,?,?,?)",
-      [companyName, vendorName, contact, email, hashed],
+      "INSERT INTO vendors (company_name, vendor_name, contact, email, password, category) VALUES (?,?,?,?,?,?)",
+      [companyName, vendorName, contact, email, hashed, category],
       function (err) {
         if (err) return res.status(500).json({ error: "Failed to register vendor." });
-        console.log(`✅ Vendor inserted — id: ${this.lastID}`);
+        console.log(`\u2705 Vendor inserted \u2014 id: ${this.lastID}`);
         res.status(201).json({ message: "Vendor Registration Successful" });
       }
     );
@@ -504,11 +504,50 @@ app.get("/api/dashboard/vendor/:vendor_id", (req, res) => {
 // GET /api/vendors  — list all vendors (admin use)
 app.get("/api/vendors", (req, res) => {
   db.all(
-    "SELECT id, company_name, vendor_name, email, contact, created_at FROM vendors ORDER BY created_at DESC",
+    "SELECT id, company_name, vendor_name, email, contact, category, status, created_at FROM vendors ORDER BY created_at DESC",
     [],
     (err, rows) => {
       if (err) return res.status(500).json({ error: "Database error." });
       res.json(rows);
+    }
+  );
+});
+
+// PATCH /api/vendors/:id/status  — approve or reject a vendor
+app.patch("/api/vendors/:id/status", (req, res) => {
+  const { status } = req.body;
+  if (!["approved", "rejected"].includes(status))
+    return res.status(400).json({ error: "Status must be approved or rejected." });
+  db.run("UPDATE vendors SET status = ? WHERE id = ?", [status, req.params.id], function (err) {
+    if (err) return res.status(500).json({ error: "Failed to update vendor status." });
+    if (this.changes === 0) return res.status(404).json({ error: "Vendor not found." });
+    res.json({ message: `Vendor ${status} successfully.` });
+  });
+});
+
+// GET /api/purchase-orders  — list all purchase orders
+app.get("/api/purchase-orders", (req, res) => {
+  db.all(
+    "SELECT * FROM purchase_orders ORDER BY created_at DESC",
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "Database error." });
+      res.json(rows);
+    }
+  );
+});
+
+// POST /api/purchase-orders  — create a new purchase order
+app.post("/api/purchase-orders", (req, res) => {
+  const { companyName, productName, category, quantity, amount, dateOfOrder } = req.body;
+  if (!companyName || !productName || !category || !quantity || !amount || !dateOfOrder)
+    return res.status(400).json({ error: "All fields are required." });
+  db.run(
+    "INSERT INTO purchase_orders (companyName, productName, category, quantity, amount, dateOfOrder) VALUES (?,?,?,?,?,?)",
+    [companyName, productName, category, quantity, amount, dateOfOrder],
+    function (err) {
+      if (err) return res.status(500).json({ error: "Failed to create purchase order." });
+      res.status(201).json({ message: "Purchase order created.", id: this.lastID });
     }
   );
 });
