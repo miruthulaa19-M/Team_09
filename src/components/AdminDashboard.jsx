@@ -4,10 +4,12 @@ import { VendorProvider } from "../context/VendorContext";
 import "../styles/AdminDashboard.css";
 
 const NAV = [
-  { to: "/admin-dashboard",                   label: "Dashboard"         },
-  { to: "/admin-dashboard/vendor-management", label: "Vendor Management" },
-  { to: "/admin-dashboard/purchase-history",  label: "Purchase History"  },
-  { to: "/admin-dashboard/profile",           label: "Profile"           },
+  { to: "/admin-dashboard",                     label: "Dashboard"        },
+  { to: "/admin-dashboard/vendor-management",   label: "Vendor Management"},
+  { to: "/admin-dashboard/purchase-history",    label: "Purchase History" },
+  { to: "/admin-dashboard/vendor-list",         label: "Vendor List"      },
+  { to: "/admin-dashboard/purchase-orders",     label: "Purchase Orders"  },
+  { to: "/admin-dashboard/profile",             label: "Profile"          },
 ];
 
 function AdminDashboard() {

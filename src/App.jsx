@@ -11,6 +11,8 @@ import DashboardHome   from "./components/DashboardHome";
 import VendorManagement from "./components/VendorManagement";
 import PurchaseHistory from "./components/PurchaseHistory";
 import Profile         from "./components/Profile";
+import VendorList      from "./pages/admin/VendorList";
+import PurchaseOrders  from "./pages/admin/PurchaseOrders";
 
 function App() {
   return (
@@ -24,11 +26,17 @@ function App() {
         <Route path="/test-dashboard" element={<TestDashboard />} />
 
         <Route path="/admin-dashboard" element={<AdminDashboard />}>
-          <Route index                    element={<DashboardHome />} />
-          <Route path="vendor-management" element={<VendorManagement />} />
-          <Route path="purchase-history"  element={<PurchaseHistory />} />
-          <Route path="profile"           element={<Profile />} />
+          <Route index                       element={<DashboardHome />} />
+          <Route path="vendor-management"    element={<VendorManagement />} />
+          <Route path="purchase-history"     element={<PurchaseHistory />} />
+          <Route path="vendor-list"          element={<VendorList />} />
+          <Route path="purchase-orders"      element={<PurchaseOrders />} />
+          <Route path="profile"              element={<Profile />} />
         </Route>
+
+        {/* Legacy flat routes (redirect into dashboard) */}
+        <Route path="/admin/vendors"          element={<Navigate to="/admin-dashboard/vendor-list"      replace />} />
+        <Route path="/admin/purchase-orders"  element={<Navigate to="/admin-dashboard/purchase-orders"  replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

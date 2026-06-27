@@ -6,7 +6,7 @@ const emailRegex    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
 const phoneRegex    = /^\d{10}$/;
 
-const emptyReg   = { companyName: "", vendorName: "", contact: "", email: "", password: "", confirmPassword: "" };
+const emptyReg   = { companyName: "", vendorName: "", contact: "", email: "", password: "", confirmPassword: "", category: "" };
 const emptyLogin = { email: "", password: "" };
 
 function required(val) {
@@ -25,6 +25,7 @@ function validateReg(v) {
                      : !passwordRegex.test(v.password) ? "Password must be at least 6 characters with letters and numbers" : "",
     confirmPassword: !v.confirmPassword.trim() ? "This field is required"
                      : v.confirmPassword !== v.password ? "Passwords do not match" : "",
+    category:        !v.category ? "Please select a category" : "",
   };
 }
 
@@ -78,6 +79,7 @@ function VendorLogin() {
           contact:     regValues.contact,
           email:       regValues.email,
           password:    regValues.password,
+          category:    regValues.category,
         }),
       });
       const data = await res.json();
@@ -115,6 +117,8 @@ function VendorLogin() {
       setLoading(false);
     }
   };
+
+  const CATEGORIES = ["💻 Electronics", "🪑 Furniture", "🖨️ Office Supplies"];
 
   const regFields = [
     { name: "companyName",     label: "Company Name",     type: "text",     placeholder: "Enter Company Name" },
@@ -162,6 +166,22 @@ function VendorLogin() {
                 {regErrors[name] && <span className="error-message">{regErrors[name]}</span>}
               </div>
             ))}
+            <div className="input-group">
+              <label htmlFor="reg-category">Category</label>
+              <select
+                id="reg-category"
+                name="category"
+                value={regValues.category}
+                onChange={handleRegChange}
+                className="vl-select"
+              >
+                <option value="">— Select category —</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {regErrors.category && <span className="error-message">{regErrors.category}</span>}
+            </div>
             <button className="submit-btn" type="submit" disabled={loading}>
               {loading ? "Registering..." : "Register"}
             </button>
