@@ -12,7 +12,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 db.serialize(() => {
 
   // ── ADMINS ────────────────────────────────────────────────────
-  // Admin Portal — Profile
   db.run(`
     CREATE TABLE IF NOT EXISTS admins (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +24,6 @@ db.serialize(() => {
   `, (err) => {
     if (err) { console.error("❌ admins:", err.message); return; }
     console.log("✅ admins table ready");
-
     db.get("SELECT id FROM admins WHERE email = ?", ["admin@gmail.com"], async (err, row) => {
       if (err || row) return;
       const hashed = await bcrypt.hash("Admin123", 10);
@@ -41,7 +39,6 @@ db.serialize(() => {
   });
 
   // ── VENDORS ───────────────────────────────────────────────────
-  // Vendor Portal — Profile + Auth
   db.run(`
     CREATE TABLE IF NOT EXISTS vendors (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,55 +47,70 @@ db.serialize(() => {
       email           TEXT    NOT NULL UNIQUE,
       password        TEXT    NOT NULL,
       contact         TEXT    NOT NULL,
-      company_address TEXT,
-      gst_number      TEXT,
-      status          TEXT NOT NULL DEFAULT 'pending',
-      category        TEXT NOT NULL DEFAULT ''
+      company_address TEXT    DEFAULT '',
+      gst_number      TEXT    DEFAULT '',
+      status          TEXT    NOT NULL DEFAULT 'pending',
+      category        TEXT    NOT NULL DEFAULT ''
     )
   `, (err) => {
-    if (err) console.error("\u274c vendors:", err.message);
+    if (err) console.error("❌ vendors:", err.message);
     else {
-      console.log("\u2705 vendors table ready");
-      db.run("ALTER TABLE vendors ADD COLUMN status   TEXT NOT NULL DEFAULT 'pending'", () => {});
-      db.run("ALTER TABLE vendors ADD COLUMN category TEXT NOT NULL DEFAULT ''",        () => {});
+      console.log("✅ vendors table ready");
+      db.run("ALTER TABLE vendors ADD COLUMN status          TEXT NOT NULL DEFAULT 'pending'", () => {});
+      db.run("ALTER TABLE vendors ADD COLUMN category        TEXT NOT NULL DEFAULT ''",        () => {});
+      db.run("ALTER TABLE vendors ADD COLUMN company_address TEXT DEFAULT ''",                 () => {});
     }
   });
 
-  // ── QUOTATIONS ────────────────────────────────────────────────
-  // Vendor submits → appears in Admin Vendor Management
-  // Admin Portal : S.No, Company Name, Product Name, Product Price,
-  //                Total Quantity, Total Price, Status, Rating
-  // Vendor Portal : Company Name, Product Name, Product Price,
-  //                 Total Quantity, Total Price, Submitted Date, Delivery Date
+  // ── REQUIREMENTS (admin creates → vendors see by category) ────
+  db.run(`
+    CREATE TABLE IF NOT EXISTS requirements (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      category      TEXT    NOT NULL,
+      product_name  TEXT    NOT NULL,
+      quantity      INTEGER NOT NULL,
+      unit          TEXT    DEFAULT '',
+      delivery_date TEXT    NOT NULL,
+      last_date     TEXT    DEFAULT '',
+      notes         TEXT    DEFAULT '',
+      status        TEXT    NOT NULL DEFAULT 'Open',
+      created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+    )
+  `, (err) => {
+    if (err) console.error("❌ requirements:", err.message);
+    else     console.log("✅ requirements table ready");
+  });
+
+  // ── QUOTATIONS (vendor submits against a requirement) ─────────
   db.run(`
     CREATE TABLE IF NOT EXISTS quotations (
-      sno             INTEGER PRIMARY KEY AUTOINCREMENT,
-      company_name    TEXT    NOT NULL,
-      product_name    TEXT    NOT NULL,
-      product_price   REAL    NOT NULL,
-      total_quantity  INTEGER NOT NULL,
-      total_price     REAL    NOT NULL,
-      submitted_date  TEXT    NOT NULL DEFAULT (datetime('now')),
-      delivery_date   TEXT    NOT NULL,
-      status          TEXT    NOT NULL DEFAULT 'Pending'
-                               CHECK(status IN ('Pending','Accepted','Rejected')),
-      rating          INTEGER          CHECK(rating BETWEEN 1 AND 5)
+      id                INTEGER PRIMARY KEY AUTOINCREMENT,
+      req_id            INTEGER,
+      vendor_id         INTEGER NOT NULL,
+      product_name      TEXT    NOT NULL,
+      unit_price        REAL    NOT NULL,
+      total_amount      REAL    NOT NULL,
+      delivery_timeline TEXT    DEFAULT '',
+      notes             TEXT    DEFAULT '',
+      submitted_date    TEXT    NOT NULL DEFAULT (datetime('now')),
+      status            TEXT    NOT NULL DEFAULT 'Pending'
+                                 CHECK(status IN ('Pending','Accepted','Rejected'))
     )
   `, (err) => {
     if (err) console.error("❌ quotations:", err.message);
     else     console.log("✅ quotations table ready");
   });
 
-  // ── PURCHASE_HISTORY ──────────────────────────────────────────
-  // Admin Portal — auto-filled when admin Accepts a quotation
-  // Shows: Company Name, Product Name, Total Quantity, Total Price, Purchase Date
+  // ── PURCHASE_HISTORY (auto-created when admin accepts quotation)
   db.run(`
     CREATE TABLE IF NOT EXISTS purchase_history (
-      sno             INTEGER PRIMARY KEY AUTOINCREMENT,
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      vendor_id       INTEGER NOT NULL,
       company_name    TEXT    NOT NULL,
       product_name    TEXT    NOT NULL,
       total_quantity  INTEGER NOT NULL,
       total_price     REAL    NOT NULL,
+      delivery_date   TEXT    DEFAULT '',
       purchase_date   TEXT    NOT NULL DEFAULT (datetime('now'))
     )
   `, (err) => {
@@ -106,23 +118,55 @@ db.serialize(() => {
     else     console.log("✅ purchase_history table ready");
   });
 
-  // ── PURCHASE_ORDERS ─────────────────────────────────────────
-  // Use DROP + CREATE unconditionally — safest migration approach
+  // ── VENDOR_PRODUCTS ───────────────────────────────────────────
+  db.run(`
+    CREATE TABLE IF NOT EXISTS vendor_products (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      vendor_id    INTEGER NOT NULL,
+      category     TEXT    NOT NULL,
+      product_name TEXT    NOT NULL,
+      description  TEXT    DEFAULT '',
+      created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+    )
+  `, (err) => {
+    if (err) console.error("❌ vendor_products:", err.message);
+    else     console.log("✅ vendor_products table ready");
+  });
+
+  // ── PURCHASE_ORDERS (admin-created, category-filtered) ────────
   db.run("DROP TABLE IF EXISTS purchase_orders");
   db.run(`
     CREATE TABLE IF NOT EXISTS purchase_orders (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      companyName TEXT    NOT NULL,
-      productName TEXT    NOT NULL,
-      category    TEXT    NOT NULL,
-      quantity    INTEGER NOT NULL,
-      amount      REAL    NOT NULL,
-      dateOfOrder TEXT    NOT NULL,
-      created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      requestNo     TEXT,
+      category      TEXT    NOT NULL,
+      productName   TEXT    NOT NULL,
+      quantity      INTEGER NOT NULL,
+      unit          TEXT    NOT NULL,
+      deliveryDate  TEXT    NOT NULL,
+      notes         TEXT    DEFAULT '',
+      status        TEXT    NOT NULL DEFAULT 'Pending',
+      dateSubmitted TEXT    NOT NULL DEFAULT (datetime('now'))
     )
   `, (err) => {
     if (err) console.error("❌ purchase_orders:", err.message);
     else     console.log("✅ purchase_orders table ready");
+  });
+
+  // ── RATINGS ───────────────────────────────────────────────────
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ratings (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      vendor_id    INTEGER NOT NULL,
+      quotation_id INTEGER,
+      product_name TEXT    NOT NULL,
+      stars        INTEGER NOT NULL CHECK(stars BETWEEN 1 AND 5),
+      comments     TEXT    DEFAULT '',
+      rated_at     TEXT    NOT NULL DEFAULT (datetime('now'))
+    )
+  `, (err) => {
+    if (err) console.error("❌ ratings:", err.message);
+    else     console.log("✅ ratings table ready");
   });
 
   // ── RESET TOKENS ──────────────────────────────────────────────
@@ -137,23 +181,6 @@ db.serialize(() => {
   `, (err) => {
     if (err) console.error("❌ reset_tokens:", err.message);
     else     console.log("✅ reset_tokens table ready");
-  });
-
-  // ── RATINGS ───────────────────────────────────────────────────
-  // Vendor Portal — rating given by Admin per accepted quotation
-  // Shows: Overall Rating, Individual Product Rating
-  db.run(`
-    CREATE TABLE IF NOT EXISTS ratings (
-      sno             INTEGER PRIMARY KEY AUTOINCREMENT,
-      company_name    TEXT    NOT NULL,
-      product_name    TEXT    NOT NULL,
-      stars           INTEGER NOT NULL CHECK(stars BETWEEN 1 AND 5),
-      overall_rating  REAL,
-      rated_at        TEXT    NOT NULL DEFAULT (datetime('now'))
-    )
-  `, (err) => {
-    if (err) console.error("❌ ratings:", err.message);
-    else     console.log("✅ ratings table ready");
   });
 
 });

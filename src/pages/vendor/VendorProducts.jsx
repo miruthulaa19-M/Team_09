@@ -4,7 +4,7 @@ import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
 
 const BASE = "http://localhost:5000";
-const CATEGORIES = ["Electronics","Furniture","Stationery","IT Equipment","Cleaning Supplies","Machinery","Other"];
+const CATEGORIES = ["💻 Electronics", "🪑 Furniture", "🖨️ Office Supplies"];
 const EMPTY = { category: "", product_name: "", description: "" };
 
 function VendorProducts() {
