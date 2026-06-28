@@ -665,6 +665,17 @@
 
 .po-number { font-weight: 700; color: #FB923C; }
 
+.po-vendor-hint {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
 /* Inline API error */
 .api-error-inline {
   padding: 10px 14px;
