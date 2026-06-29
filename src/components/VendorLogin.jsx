@@ -6,7 +6,7 @@ const emailRegex    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
 const phoneRegex    = /^\d{10}$/;
 
-const emptyReg   = { companyName: "", vendorName: "", contact: "", email: "", password: "", confirmPassword: "", category: "" };
+const emptyReg   = { companyName: "", vendorName: "", contact: "", email: "", password: "", confirmPassword: "", category: "", products: [] };
 const emptyLogin = { email: "", password: "" };
 
 function required(val) {
@@ -80,6 +80,7 @@ function VendorLogin() {
           email:       regValues.email,
           password:    regValues.password,
           category:    regValues.category,
+          products:    regValues.products || [],
         }),
       });
       const data = await res.json();
@@ -115,6 +116,9 @@ function VendorLogin() {
       localStorage.setItem("vendor_name",  data.vendor.vendorName);
       localStorage.setItem("company_name", data.vendor.companyName);
       localStorage.setItem("vendor_email", data.vendor.email);
+      // store category and products for quick access
+      if (data.vendor.category) localStorage.setItem("vendor_category", data.vendor.category);
+      if (data.vendor.products) localStorage.setItem("vendor_products", JSON.stringify(data.vendor.products));
       setSuccess(data.message);
       setTimeout(() => navigate("/vendor/dashboard"), 800);
     } catch {
@@ -124,7 +128,21 @@ function VendorLogin() {
     }
   };
 
-  const CATEGORIES = ["💻 Electronics", "🪑 Furniture", "🖨️ Office Supplies"];
+  const CATEGORIES = [
+    "Electronics",
+    "Furniture",
+    "Stationery",
+    "Computer & IT Equipment",
+    "Electrical Supplies",
+  ];
+
+  const PRODUCTS_BY_CATEGORY = {
+    "Electronics": ["Laptop","Desktop","Printer","Monitor","Keyboard","Mouse"],
+    "Furniture": ["Office Chair","Office Table","Cupboard","Shelf","Cabinet"],
+    "Stationery": ["Pen","Pencil","Notebook","File","Marker"],
+    "Computer & IT Equipment": ["Server","Hard Disk","SSD","RAM","Webcam"],
+    "Electrical Supplies": ["LED Bulb","Wire","Cable","Switch","Fan"],
+  };
 
   const regFields = [
     { name: "companyName",     label: "Company Name",     type: "text",     placeholder: "Enter Company Name" },
@@ -178,7 +196,7 @@ function VendorLogin() {
                 id="reg-category"
                 name="category"
                 value={regValues.category}
-                onChange={handleRegChange}
+                onChange={(e) => { handleRegChange(e); setRegValues(r => ({ ...r, products: [] })); }}
                 className="vl-select"
               >
                 <option value="">— Select category —</option>
@@ -188,6 +206,30 @@ function VendorLogin() {
               </select>
               {regErrors.category && <span className="error-message">{regErrors.category}</span>}
             </div>
+            {regValues.category && (
+              <div className="input-group">
+                <label>Products Supplied</label>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  {(PRODUCTS_BY_CATEGORY[regValues.category] || []).map((p) => (
+                    <label key={p} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <input
+                        type="checkbox"
+                        checked={(regValues.products || []).includes(p)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setRegValues(r => {
+                            const existing = new Set(r.products || []);
+                            if (checked) existing.add(p); else existing.delete(p);
+                            return { ...r, products: Array.from(existing) };
+                          });
+                        }}
+                      />
+                      <span>{p}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <button className="submit-btn" type="submit" disabled={loading}>
               {loading ? "Registering..." : "Register"}
             </button>

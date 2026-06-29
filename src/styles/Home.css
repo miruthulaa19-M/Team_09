@@ -11,7 +11,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #FAFAF8;
+    background: #F3F6FF;
     font-family: "Plus Jakarta Sans", sans-serif;
 }
 
@@ -20,22 +20,22 @@
     background: #ffffff;
     padding: 60px 52px;
     border-radius: 20px;
-    box-shadow: 0 24px 70px rgba(251, 146, 60, 0.18);
-    border: 1px solid rgba(251, 146, 60, 0.2);
+    box-shadow: 0 24px 70px rgba(30, 58, 138, 0.16);
+    border: 1px solid rgba(30, 58, 138, 0.12);
     text-align: center;
 }
 
 .home-logo {
     font-size: 42px;
     font-weight: 800;
-    color: #FB923C;
+    color: #1E3A8A;
     margin-bottom: 6px;
     letter-spacing: -0.5px;
 }
 
 .home-subtitle {
     font-size: 15px;
-    color: #9CA3AF;
+    color: #6B7280;
     font-weight: 500;
     margin-bottom: 48px;
 }
@@ -61,27 +61,27 @@
 }
 
 .home-btn-primary {
-    background: linear-gradient(135deg, #FB923C 0%, #FDBA74 100%);
+    background: linear-gradient(135deg, #1E3A8A 0%, #60A5FA 100%);
     color: #ffffff;
-    box-shadow: 0 14px 28px rgba(251, 146, 60, 0.28);
+    box-shadow: 0 14px 28px rgba(30, 58, 138, 0.24);
     margin-bottom: 16px;
 }
 
 .home-btn-primary:hover {
     transform: scale(1.03);
-    box-shadow: 0 18px 34px rgba(251, 146, 60, 0.36);
+    box-shadow: 0 18px 34px rgba(30, 58, 138, 0.32);
     filter: brightness(1.05);
 }
 
 .home-btn-secondary {
     background: #ffffff;
-    color: #FB923C;
-    border: 2px solid #FB923C;
-    box-shadow: 0 6px 20px rgba(251, 146, 60, 0.12);
+    color: #1E3A8A;
+    border: 2px solid #1E3A8A;
+    box-shadow: 0 6px 20px rgba(30, 58, 138, 0.12);
 }
 
 .home-btn-secondary:hover {
-    background: #FFF7ED;
+    background: #EFF6FF;
     transform: scale(1.03);
-    box-shadow: 0 10px 26px rgba(251, 146, 60, 0.2);
+    box-shadow: 0 10px 26px rgba(30, 58, 138, 0.16);
 }

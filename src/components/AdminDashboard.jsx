@@ -22,7 +22,7 @@ function AdminDashboard() {
         {/* ── Sidebar ── */}
         <aside className={`ad-sidebar${open ? "" : " collapsed"}`}>
           <div className="ad-sidebar-header">
-            {open && <span className="ad-logo">Vendor Portal</span>}
+            {open && <span className="ad-logo">Admin Portal</span>}
             <button
               className="ad-hamburger"
               onClick={() => setOpen((o) => !o)}

@@ -99,6 +99,12 @@ function VendorProfile() {
                     </div>
                   ))}
 
+                  {/* Products supplied display */}
+                  <div className="vp-pf-row">
+                    <span className="vp-pf-label">Products Supplied</span>
+                    <span className="vp-pf-value">{(profile.products_supplied || profile.products || []).length ? (profile.products_supplied || profile.products || []).join(", ") : "—"}</span>
+                  </div>
+
                   {editing && (
                     <div style={{ display:"flex", gap:"12px", paddingTop:"8px" }}>
                       <button className="vp-btn vp-btn-primary" onClick={handleSave}>Save Changes</button>
