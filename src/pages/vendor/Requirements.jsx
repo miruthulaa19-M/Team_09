@@ -12,17 +12,58 @@ function Requirements() {
   const [reqs,    setReqs]    = useState([]);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState("");
+  const [updatingId, setUpdatingId] = useState(null);
 
-  useEffect(() => {
+  const loadRequirements = () => {
     fetch(`${BASE}/api/requirements/vendor/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load requirements"); return r.json(); })
-      .then(d => { setReqs(d); setLoading(false); })
+      .then(d => { setReqs(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
+  };
+
+  useEffect(() => {
+    if (!vendor_id) {
+      setError("Please log in as a vendor to view requirements.");
+      setLoading(false);
+      return;
+    }
+    loadRequirements();
   }, [vendor_id]);
+
+  const handleDecision = (req, status) => {
+    setUpdatingId(req.id);
+    fetch(`${BASE}/api/requirements/${req.id}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    })
+      .then(r => { if (!r.ok) throw new Error("Failed to update requirement"); return r.json(); })
+      .then(() => {
+        loadRequirements();
+        if (status === "Accepted") {
+          navigate("/vendor/submit-quotation", {
+            state: {
+              req_id: req.id,
+              product_name: req.product_name,
+              quantity: req.quantity,
+              company_name: localStorage.getItem("company_name") || "",
+              vendor_name: localStorage.getItem("vendor_name") || "",
+            },
+          });
+        }
+      })
+      .catch(e => { setError(e.message); setUpdatingId(null); });
+  };
 
   const handleSubmitQuote = (req) => {
     navigate("/vendor/submit-quotation", {
-      state: { req_id: req.id, product_name: req.product_name, quantity: req.quantity },
+      state: {
+        req_id: req.id,
+        product_name: req.product_name,
+        quantity: req.quantity,
+        company_name: localStorage.getItem("company_name") || "",
+        vendor_name: localStorage.getItem("vendor_name") || "",
+      },
     });
   };
 
@@ -66,12 +107,33 @@ function Requirements() {
                           </span>
                         </td>
                         <td>
-                          <button
-                            className="vp-btn vp-btn-primary vp-btn-sm"
-                            onClick={() => handleSubmitQuote(r)}
-                          >
-                            Submit Quote
-                          </button>
+                          {(!r.status || r.status === "Open") ? (
+                            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                              <button
+                                className="vp-btn vp-btn-primary vp-btn-sm"
+                                disabled={updatingId === r.id}
+                                onClick={() => handleDecision(r, "Accepted")}
+                              >
+                                {updatingId === r.id ? "Updating..." : "Accept"}
+                              </button>
+                              <button
+                                className="vp-btn vp-btn-outline vp-btn-sm"
+                                disabled={updatingId === r.id}
+                                onClick={() => handleDecision(r, "Rejected")}
+                              >
+                                {updatingId === r.id ? "Updating..." : "Reject"}
+                              </button>
+                            </div>
+                          ) : r.status === "Accepted" ? (
+                            <button
+                              className="vp-btn vp-btn-primary vp-btn-sm"
+                              onClick={() => handleSubmitQuote(r)}
+                            >
+                              Submit Quote
+                            </button>
+                          ) : (
+                            <span className="vp-badge-status badge-rejected">Rejected</span>
+                          )}
                         </td>
                       </tr>
                     ))}

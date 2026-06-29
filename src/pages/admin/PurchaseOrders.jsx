@@ -208,7 +208,7 @@ function PurchaseOrders() {
                 <td>{o.deliveryDate ? new Date(o.deliveryDate).toLocaleDateString("en-IN") : "—"}</td>
                 <td>
                   <span className={`vm-badge ${
-                    o.status === "Approved" ? "badge-accepted" :
+                    o.status === "Accepted" ? "badge-accepted" :
                     o.status === "Rejected" ? "badge-rejected" : "badge-pending"
                   }`}>{o.status || "Pending"}</span>
                 </td>

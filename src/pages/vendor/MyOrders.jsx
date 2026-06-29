@@ -34,22 +34,26 @@ function MyOrders() {
                   <thead>
                     <tr>
                       <th>PO Number</th>
+                      <th>Company Name</th>
+                      <th>Vendor Name</th>
                       <th>Product Name</th>
-                      <th>Quantity</th>
-                      <th>Amount (₹)</th>
+                      <th>Unit Price (₹)</th>
+                      <th>Total Price (₹)</th>
                       <th>Delivery Date</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orders.length === 0 ? (
-                      <tr><td colSpan={6} className="vp-empty">No orders yet.</td></tr>
+                      <tr><td colSpan={8} className="vp-empty">No orders yet.</td></tr>
                     ) : orders.map((o, i) => (
                       <tr key={o.id || i}>
-                        <td>PO-{String(o.id || i + 1).padStart(4, "0")}</td>
+                        <td>{o.po_number || `PO-${String(o.id || i + 1).padStart(4, "0")}`}</td>
+                        <td>{o.company_name || o.vendor_company_name || "—"}</td>
+                        <td>{o.vendor_name || o.vendor_display_name || "—"}</td>
                         <td>{o.product_name}</td>
-                        <td>{o.total_quantity ?? o.quantity}</td>
-                        <td>₹{parseFloat(o.total_price || o.amount || 0).toLocaleString()}</td>
+                        <td>₹{parseFloat(o.unit_price || 0).toLocaleString()}</td>
+                        <td>₹{parseFloat(o.total_price || 0).toLocaleString()}</td>
                         <td>{o.delivery_date || o.purchase_date || "—"}</td>
                         <td>
                           <span className="vp-badge-status badge-accepted">Accepted</span>

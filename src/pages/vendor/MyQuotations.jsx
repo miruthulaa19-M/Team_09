@@ -3,8 +3,6 @@ import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
 
-const BASE = "http://localhost:5000";
-
 function MyQuotations() {
   const vendor_id = localStorage.getItem("vendor_id");
   const [quotations, setQuotations] = useState([]);
@@ -12,9 +10,15 @@ function MyQuotations() {
   const [error,      setError]      = useState("");
 
   useEffect(() => {
-    fetch(`${BASE}/api/quotations/vendor/${vendor_id}`)
+    if (!vendor_id) {
+      setError("Please log in as a vendor to view your quotations.");
+      setLoading(false);
+      return;
+    }
+
+    fetch(`/api/quotations/vendor/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load quotations"); return r.json(); })
-      .then(d => { setQuotations(d); setLoading(false); })
+      .then(d => { setQuotations(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
   }, [vendor_id]);
 
@@ -41,9 +45,9 @@ function MyQuotations() {
                 <table className="vp-table">
                   <thead>
                     <tr>
-                      <th>Quotation No.</th>
+                      <th>Quotation Number</th>
                       <th>Product Name</th>
-                      <th>Amount Quoted (₹)</th>
+                      <th>Amount Quoted</th>
                       <th>Submitted Date</th>
                       <th>Status</th>
                     </tr>
