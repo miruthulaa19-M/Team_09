@@ -4,8 +4,6 @@ import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
 
-const BASE = "http://localhost:5000";
-
 function SubmitQuotation() {
   const vendor_id  = localStorage.getItem("vendor_id");
   const { state }  = useLocation();
@@ -14,40 +12,63 @@ function SubmitQuotation() {
   const req_id       = state?.req_id       || "";
   const product_name = state?.product_name || "";
   const quantity     = state?.quantity     || 0;
+  const company_name = state?.company_name || localStorage.getItem("company_name") || "";
+  const vendor_name  = state?.vendor_name || localStorage.getItem("vendor_name") || "";
 
-  const [unitPrice,         setUnitPrice]         = useState("");
-  const [deliveryTimeline,  setDeliveryTimeline]  = useState("");
-  const [notes,             setNotes]             = useState("");
-  const [loading,           setLoading]           = useState(false);
-  const [error,             setError]             = useState("");
-  const [success,           setSuccess]           = useState("");
+  const [unitPrice,       setUnitPrice]       = useState("");
+  const [deliveryDate,    setDeliveryDate]    = useState("");
+  const [notes,           setNotes]           = useState("");
+  const [loading,         setLoading]         = useState(false);
+  const [error,           setError]           = useState("");
+  const [success,         setSuccess]         = useState("");
 
-  const totalAmount = unitPrice ? (parseFloat(unitPrice) * parseInt(quantity, 10)).toFixed(2) : "0.00";
+  const quantityValue = Number(quantity) || 0;
+  const totalAmount = unitPrice ? (parseFloat(unitPrice) * quantityValue).toFixed(2) : "0.00";
 
   const handleSubmit = e => {
     e.preventDefault();
     setError(""); setSuccess("");
-    if (!unitPrice || !deliveryTimeline) { setError("Unit Price and Delivery Timeline are required."); return; }
+
+    if (!vendor_id) {
+      setError("Please log in as a vendor before submitting a quotation.");
+      return;
+    }
+
+    if (!unitPrice || !deliveryDate) {
+      setError("Unit Price and Delivery Date are required.");
+      return;
+    }
 
     setLoading(true);
-    fetch(`${BASE}/api/quotations`, {
+    fetch("/api/quotations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        req_id, vendor_id, product_name,
-        unit_price:        parseFloat(unitPrice),
-        total_amount:      parseFloat(totalAmount),
-        delivery_timeline: deliveryTimeline,
+        req_id,
+        vendor_id,
+        product_name,
+        company_name,
+        vendor_name,
+        unit_price: parseFloat(unitPrice),
+        total_amount: parseFloat(totalAmount),
+        delivery_timeline: deliveryDate,
         notes,
       }),
     })
-      .then(r => { if (!r.ok) throw new Error("Failed to submit quotation"); return r.json(); })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || "Failed to submit quotation");
+        return data;
+      })
       .then(() => {
-        setSuccess("Quotation submitted successfully!");
+        setSuccess("Quotation submitted successfully. It is now pending admin review.");
         setLoading(false);
         setTimeout(() => navigate("/vendor/my-quotations"), 1500);
       })
-      .catch(e => { setError(e.message); setLoading(false); });
+      .catch((e) => {
+        setError(e.message);
+        setLoading(false);
+      });
   };
 
   return (
@@ -65,9 +86,19 @@ function SubmitQuotation() {
               <form className="vp-form" onSubmit={handleSubmit}>
                 <div className="vp-form-row">
                   <div className="vp-field">
+                    <label>Company Name</label>
+                    <input value={company_name} readOnly />
+                  </div>
+                  <div className="vp-field">
+                    <label>Vendor Name</label>
+                    <input value={vendor_name} readOnly />
+                  </div>
+                  <div className="vp-field">
                     <label>Product Name</label>
                     <input value={product_name} readOnly />
                   </div>
+                </div>
+                <div className="vp-form-row">
                   <div className="vp-field">
                     <label>Req Number</label>
                     <input value={req_id ? `REQ-${String(req_id).padStart(4,"0")}` : ""} readOnly />
@@ -76,8 +107,6 @@ function SubmitQuotation() {
                     <label>Quantity</label>
                     <input value={quantity} readOnly />
                   </div>
-                </div>
-                <div className="vp-form-row">
                   <div className="vp-field">
                     <label>Unit Price (₹)</label>
                     <input
@@ -87,17 +116,18 @@ function SubmitQuotation() {
                       onChange={e => setUnitPrice(e.target.value)}
                     />
                   </div>
+                </div>
+                <div className="vp-form-row">
                   <div className="vp-field">
-                    <label>Total Amount (₹)</label>
+                    <label>Total Price (₹)</label>
                     <input value={`₹ ${totalAmount}`} readOnly />
                   </div>
                   <div className="vp-field">
-                    <label>Delivery Timeline</label>
+                    <label>Delivery Date</label>
                     <input
-                      type="text"
-                      placeholder="e.g. 7 days"
-                      value={deliveryTimeline}
-                      onChange={e => setDeliveryTimeline(e.target.value)}
+                      type="date"
+                      value={deliveryDate}
+                      onChange={e => setDeliveryDate(e.target.value)}
                     />
                   </div>
                 </div>

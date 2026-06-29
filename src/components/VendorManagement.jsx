@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { useVendors } from "../context/VendorContext";
+import { useEffect, useState } from "react";
 import "../styles/AdminDashboard.css";
 
 function StarRatingPopup({ vendorName, onSubmit, onClose }) {
-  const [hovered,  setHovered]  = useState(0);
+  const [hovered, setHovered] = useState(0);
   const [selected, setSelected] = useState(0);
 
   return (
@@ -27,11 +26,7 @@ function StarRatingPopup({ vendorName, onSubmit, onClose }) {
         </p>
         <div className="vm-popup-actions">
           <button className="vm-btn-cancel" onClick={onClose}>Cancel</button>
-          <button
-            className="vm-btn-submit"
-            disabled={!selected}
-            onClick={() => onSubmit(selected)}
-          >Submit</button>
+          <button className="vm-btn-submit" disabled={!selected} onClick={() => onSubmit(selected)}>Submit</button>
         </div>
       </div>
     </div>
@@ -39,85 +34,113 @@ function StarRatingPopup({ vendorName, onSubmit, onClose }) {
 }
 
 function VendorManagement() {
-  const { vendors, setVendors } = useVendors();
-  const [search, setSearch]     = useState("");
-  const [popup,  setPopup]      = useState(null);
+  const [records, setRecords] = useState([]);
+  const [search, setSearch] = useState("");
+  const [popup, setPopup] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const filtered = vendors.filter((v) =>
-    v.company.toLowerCase().includes(search.toLowerCase()) ||
-    v.product.toLowerCase().includes(search.toLowerCase())
-  );
+  const load = () => {
+    fetch("/api/quotations")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load quotations");
+        return res.json();
+      })
+      .then((data) => setRecords(Array.isArray(data) ? data : []))
+      .catch(() => setError("Failed to load quotations."))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filtered = records.filter((v) => {
+    const q = search.toLowerCase();
+    return (
+      (v.company_name || "").toLowerCase().includes(q) ||
+      (v.vendor_name || "").toLowerCase().includes(q) ||
+      (v.product_name || "").toLowerCase().includes(q)
+    );
+  });
 
   const handleAccept = (id, company) => setPopup({ id, company });
 
-  const handleReject = (id) =>
-    setVendors((vs) => vs.map((v) => v.id === id ? { ...v, status: "Rejected" } : v));
+  const handleReject = async (id) => {
+    try {
+      const res = await fetch(`/api/quotations/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Rejected" }),
+      });
+      if (!res.ok) throw new Error("Failed to reject quotation");
+      load();
+    } catch {
+      setError("Failed to reject quotation.");
+    }
+  };
 
-  const handleRatingSubmit = (stars) => {
-    setVendors((vs) =>
-      vs.map((v) => v.id === popup.id ? { ...v, status: `Accepted (${stars} stars)` } : v)
-    );
-    setPopup(null);
+  const handleRatingSubmit = async (stars) => {
+    try {
+      const res = await fetch(`/api/quotations/${popup.id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "Accepted", rating: stars, comments: "" }),
+      });
+      if (!res.ok) throw new Error("Failed to accept quotation");
+      setPopup(null);
+      load();
+    } catch {
+      setError("Failed to accept quotation.");
+    }
   };
 
   return (
     <div className="vm-wrap">
       {popup && (
-        <StarRatingPopup
-          vendorName={popup.company}
-          onSubmit={handleRatingSubmit}
-          onClose={() => setPopup(null)}
-        />
+        <StarRatingPopup vendorName={popup.company} onSubmit={handleRatingSubmit} onClose={() => setPopup(null)} />
       )}
 
       <div className="vm-toolbar">
         <h3 className="dh-section-title">Vendor Management</h3>
-        <input
-          className="vm-search"
-          type="text"
-          placeholder="Search by company or product..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <input className="vm-search" type="text" placeholder="Search by vendor or product..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
+
+      {error && <p className="api-error-inline">{error}</p>}
+      {loading && <p className="vm-empty">Loading quotations...</p>}
 
       <div className="vm-table-wrap">
         <table className="vm-table">
           <thead>
             <tr>
               <th>#</th>
-              <th>Company Name</th>
-              <th>Product Name</th>
-              <th>Product Price (₹)</th>
-              <th>Total Qty</th>
-              <th>Total Price (₹)</th>
-              <th>Delivery Date</th>
+              <th>Vendor</th>
+              <th>Product</th>
+              <th>Amount (₹)</th>
+              <th>Delivery</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={9} className="vm-empty">No records found.</td></tr>
+              <tr><td colSpan={7} className="vm-empty">No records found.</td></tr>
             ) : filtered.map((v, i) => (
               <tr key={v.id}>
                 <td>{i + 1}</td>
-                <td>{v.company}</td>
-                <td>{v.product}</td>
-                <td>₹{v.price.toLocaleString()}</td>
-                <td>{v.qty}</td>
-                <td>₹{v.total.toLocaleString()}</td>
-                <td>{v.delivery}</td>
+                <td>{v.company_name || v.vendor_name}</td>
+                <td>{v.product_name}</td>
+                <td>₹{parseFloat(v.total_amount || 0).toLocaleString()}</td>
+                <td>{v.delivery_timeline || "—"}</td>
                 <td>
-                  <span className={`vm-badge ${
-                    v.status === "Pending"  ? "badge-pending"  :
-                    v.status === "Rejected" ? "badge-rejected" : "badge-accepted"
-                  }`}>{v.status}</span>
+                  <span className={`vm-badge ${v.status === "Accepted" ? "badge-accepted" : v.status === "Rejected" ? "badge-rejected" : "badge-pending"}`}>
+                    {v.status || "Pending"}
+                  </span>
                 </td>
                 <td>
-                  {v.status === "Pending" && (
+                  {(!v.status || v.status === "Pending") && (
                     <div className="vm-actions">
-                      <button className="vm-btn-accept" onClick={() => handleAccept(v.id, v.company)}>Accept</button>
+                      <button className="vm-btn-accept" onClick={() => handleAccept(v.id, v.company_name || v.vendor_name)}>Accept</button>
                       <button className="vm-btn-reject" onClick={() => handleReject(v.id)}>Reject</button>
                     </div>
                   )}
