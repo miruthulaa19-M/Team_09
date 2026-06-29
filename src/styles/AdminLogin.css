@@ -148,16 +148,15 @@
 }
 
 .input-group input:focus {
-    border-color: #FB923C;
+    border-color: #1E3A8A;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.15);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.12);
 }
 
 .error-message {
     display: block;
     margin-top: 7px;
-    color: #ef4444;
-    font-size: 12px;
+    color: #DC2626;
     font-weight: 500;
     line-height: 1.35;
 }
@@ -168,7 +167,7 @@
 }
 
 .forgot a {
-    color: #FB923C;
+    color: #1E3A8A;
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
@@ -176,48 +175,48 @@
 
 .forgot a:hover,
 .signin-text span:hover {
-    color: #FDBA74;
+    color: #60A5FA;
 }
 
 .signup-btn {
     width: 100%;
-    padding: 13px 16px;
+    padding: 15px 18px;
     border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #FB923C 0%, #FDBA74 100%);
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1E3A8A 0%, #60A5FA 100%);
     color: #ffffff;
     font-family: inherit;
-    font-size: 16px;
     font-weight: 700;
+    font-size: 16px;
     cursor: pointer;
-    box-shadow: 0 14px 28px rgba(251, 146, 60, 0.28);
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        filter 0.2s ease;
+    box-shadow: 0 18px 28px rgba(30, 58, 138, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .signup-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 18px 34px rgba(251, 146, 60, 0.36);
-    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 20px 34px rgba(30, 58, 138, 0.32);
+    filter: brightness(1.08);
 }
 
 .signup-btn:active {
-    transform: scale(0.99);
+    transform: scale(0.98);
 }
 
 .signin-text {
-    margin-top: 22px;
-    color: #6B7280;
+    background: linear-gradient(135deg, #1E3A8A 0%, #60A5FA 100%);
+    color: #ffffff;
     font-size: 14px;
     line-height: 1.5;
     text-align: center;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 18px;
 }
 
 .signin-text span {
     margin-left: 6px;
-    color: #FB923C;
+    color: #ffffff;
     font-weight: 700;
     cursor: pointer;
     transition: color 0.2s ease;
@@ -228,7 +227,6 @@
         opacity: 0;
         transform: translateY(16px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);

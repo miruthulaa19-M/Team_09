@@ -11,7 +11,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #FAFAF8;
+    background: #EFF6FF;
     font-family: "Plus Jakarta Sans", sans-serif;
 }
 
@@ -19,9 +19,9 @@
     width: 500px;
     background: #ffffff;
     padding: 44px;
-    border-radius: 16px;
-    box-shadow: 0 24px 70px rgba(251, 146, 60, 0.18);
-    border: 1px solid rgba(251, 146, 60, 0.2);
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(30, 58, 138, 0.16);
+    border: 1px solid rgba(30, 58, 138, 0.12);
     animation: fadeInCard 0.45s ease-out both;
 }
 
@@ -32,7 +32,7 @@
     gap: 6px;
     background: none;
     border: none;
-    color: #FB923C;
+    color: #1E3A8A;
     font-family: "Plus Jakarta Sans", sans-serif;
     font-size: 14px;
     font-weight: 600;
@@ -43,14 +43,14 @@
 }
 
 .back-arrow:hover {
-    color: #FDBA74;
+    color: #60A5FA;
 }
 
 /* ── Brand ── */
 .brand-title {
     font-size: 36px;
     font-weight: 800;
-    color: #FB923C;
+    color: #1E3A8A;
     text-align: center;
     margin-bottom: 24px;
     letter-spacing: -0.5px;
@@ -60,7 +60,7 @@
 .tab-bar {
     display: flex;
     border-radius: 10px;
-    background: #FFF7ED;
+    background: #E8EFFD;
     padding: 4px;
     margin-bottom: 24px;
     gap: 4px;
@@ -76,14 +76,14 @@
     font-weight: 600;
     cursor: pointer;
     background: transparent;
-    color: #9CA3AF;
+    color: #6B7280;
     transition: background 0.2s ease, color 0.2s ease;
 }
 
 .tab-btn.tab-active {
     background: #ffffff;
-    color: #FB923C;
-    box-shadow: 0 2px 8px rgba(251, 146, 60, 0.18);
+    color: #1E3A8A;
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.18);
 }
 
 /* ── Form inputs ── */
@@ -106,7 +106,7 @@
     border-radius: 10px;
     font-size: 14px;
     outline: none;
-    background: #FAFAF8;
+    background: #F8FAFF;
     color: #111827;
     font-family: inherit;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -117,9 +117,9 @@
 }
 
 .input-group input:focus {
-    border-color: #FB923C;
+    border-color: #1E3A8A;
     background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.12);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.12);
 }
 
 /* ── Category select ── */
@@ -130,7 +130,7 @@
     border-radius: 10px;
     font-size: 14px;
     outline: none;
-    background: #FAFAF8;
+    background: #F8FAFF;
     color: #111827;
     font-family: inherit;
     cursor: pointer;
@@ -143,16 +143,16 @@
 }
 
 .vl-select:focus {
-    border-color: #FB923C;
+    border-color: #1E3A8A;
     background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.12);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.12);
 }
 
 /* ── Messages ── */
 .error-message {
     display: block;
     margin-top: 5px;
-    color: #ef4444;
+    color: #DC2626;
     font-size: 12px;
     font-weight: 500;
 }
@@ -163,7 +163,7 @@
     border: 1px solid rgba(34, 197, 94, 0.4);
     border-radius: 10px;
     background: rgba(34, 197, 94, 0.08);
-    color: #16a34a;
+    color: #16A34A;
     font-size: 14px;
     font-weight: 600;
     text-align: center;
@@ -175,7 +175,7 @@
     border: 1px solid rgba(239, 68, 68, 0.35);
     border-radius: 10px;
     background: rgba(239, 68, 68, 0.07);
-    color: #dc2626;
+    color: #DC2626;
     font-size: 14px;
     font-weight: 600;
     text-align: center;
@@ -186,7 +186,7 @@
     width: 100%;
     margin-top: 8px;
     padding: 13px;
-    background: linear-gradient(135deg, #FB923C 0%, #FDBA74 100%);
+    background: linear-gradient(135deg, #1E3A8A 0%, #60A5FA 100%);
     color: #ffffff;
     border: none;
     border-radius: 10px;
@@ -194,13 +194,13 @@
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 14px 28px rgba(251, 146, 60, 0.26);
+    box-shadow: 0 14px 28px rgba(30, 58, 138, 0.26);
     transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .submit-btn:hover {
     transform: scale(1.03);
-    box-shadow: 0 18px 34px rgba(251, 146, 60, 0.34);
+    box-shadow: 0 18px 34px rgba(30, 58, 138, 0.34);
     filter: brightness(1.05);
 }
 

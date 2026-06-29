@@ -42,6 +42,14 @@ function normalizeVendorRow(row) {
     ...row,
     status: row.status || "pending",
     category: row.category || "",
+    products_supplied: (() => {
+      try {
+        if (!row.products_supplied) return [];
+        return Array.isArray(row.products_supplied) ? row.products_supplied : JSON.parse(row.products_supplied);
+      } catch {
+        return typeof row.products_supplied === 'string' && row.products_supplied ? row.products_supplied.split(',') : [];
+      }
+    })(),
   };
 }
 
@@ -117,7 +125,7 @@ exports.adminLogin = (req, res) => {
 };
 
 exports.registerVendor = (req, res) => {
-  const { companyName, vendorName, contact, email, password, category } = req.body;
+  const { companyName, vendorName, contact, email, password, category, products } = req.body;
   if (!companyName || !vendorName || !contact || !email || !password || !category) {
     return res.status(400).json({ error: "All fields are required." });
   }
@@ -126,9 +134,10 @@ exports.registerVendor = (req, res) => {
   if (existing) return res.status(409).json({ error: "Email is already registered." });
 
   const hashed = bcrypt.hashSync(password, 10);
+  const productsStr = products && Array.isArray(products) ? JSON.stringify(products) : (typeof products === 'string' ? products : JSON.stringify([]));
   const result = db.prepare(
-    "INSERT INTO vendors (company_name, vendor_name, contact, email, password, category, status) VALUES (?,?,?,?,?,?,?)"
-  ).run(companyName, vendorName, contact, email, hashed, category, "pending");
+    "INSERT INTO vendors (company_name, vendor_name, contact, email, password, category, status, products_supplied) VALUES (?,?,?,?,?,?,?,?)"
+  ).run(companyName, vendorName, contact, email, hashed, category, "pending", productsStr);
 
   res.status(201).json({ message: "Vendor Registration Successful", id: result.lastInsertRowid });
 };
@@ -150,6 +159,7 @@ exports.loginVendor = (req, res) => {
       email: row.email,
       category: row.category,
       status: row.status,
+      products: (row.products_supplied ? (Array.isArray(row.products_supplied) ? row.products_supplied : (function(){ try { return JSON.parse(row.products_supplied); } catch { return row.products_supplied.split(","); } })()) : []),
     },
   });
 };
@@ -169,14 +179,14 @@ exports.updateAdminProfile = (req, res) => {
 exports.listVendors = (req, res) => {
   const search = (req.query.search || "").trim();
   const stmt = search
-    ? db.prepare("SELECT id, company_name, vendor_name, email, contact, category, status FROM vendors WHERE company_name LIKE ? OR vendor_name LIKE ? OR email LIKE ? OR category LIKE ? ORDER BY id DESC")
-    : db.prepare("SELECT id, company_name, vendor_name, email, contact, category, status FROM vendors ORDER BY id DESC");
+    ? db.prepare("SELECT id, company_name, vendor_name, email, contact, category, status, products_supplied FROM vendors WHERE company_name LIKE ? OR vendor_name LIKE ? OR email LIKE ? OR category LIKE ? ORDER BY id DESC")
+    : db.prepare("SELECT id, company_name, vendor_name, email, contact, category, status, products_supplied FROM vendors ORDER BY id DESC");
   const rows = search ? stmt.all(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`) : stmt.all();
   res.json(rows.map(normalizeVendorRow));
 };
 
 exports.getVendor = (req, res) => {
-  const row = db.prepare("SELECT id, company_name, vendor_name, email, contact, company_address, gst_number, category, status FROM vendors WHERE id = ?").get(req.params.id);
+  const row = db.prepare("SELECT id, company_name, vendor_name, email, contact, company_address, gst_number, category, status, products_supplied FROM vendors WHERE id = ?").get(req.params.id);
   if (!row) return res.status(404).json({ error: "Vendor not found." });
   res.json(normalizeVendorRow(row));
 };

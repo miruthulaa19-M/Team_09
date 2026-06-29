@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import "../../styles/AdminDashboard.css";
 
-const CATEGORIES = ["💻 Electronics", "🪑 Furniture", "🖨️ Office Supplies"];
+const CATEGORIES = [
+  "Electronics",
+  "Furniture",
+  "Stationery",
+  "Computer & IT Equipment",
+  "Electrical Supplies",
+];
 const UNITS       = ["Pieces", "Boxes", "Kg", "Litres", "Sets", "Units"];
 
 const EMPTY_FORM = {

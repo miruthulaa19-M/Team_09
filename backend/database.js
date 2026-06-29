@@ -32,7 +32,8 @@ function createSchema() {
       company_address TEXT DEFAULT '',
       gst_number TEXT DEFAULT '',
       status TEXT NOT NULL DEFAULT 'pending',
-      category TEXT NOT NULL DEFAULT ''
+      category TEXT NOT NULL DEFAULT '',
+      products_supplied TEXT DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS requirements (
@@ -129,6 +130,9 @@ function createSchema() {
 
   if (!hasColumn("purchase_orders", "requirement_id")) {
     db.exec("ALTER TABLE purchase_orders ADD COLUMN requirement_id INTEGER DEFAULT NULL;");
+  }
+  if (!hasColumn("vendors", "products_supplied")) {
+    db.exec("ALTER TABLE vendors ADD COLUMN products_supplied TEXT DEFAULT '';");
   }
 }
 
