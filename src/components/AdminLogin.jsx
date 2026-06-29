@@ -73,6 +73,7 @@ function AdminLogin() {
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setSuccess(data.message);
+      if (data.admin) localStorage.setItem("admin", JSON.stringify(data.admin));
       setTimeout(() => navigate("/admin-dashboard"), 800);
     } catch {
       setApiError("Server unreachable. Please make sure the backend is running.");
@@ -148,7 +149,7 @@ function AdminLogin() {
                 value={loginValues.password} onChange={handleLoginChange} />
               {loginErrors.password && <span className="error-message">{loginErrors.password}</span>}
             </div>
-            <div className="forgot"><a href="#">Forgot Password?</a></div>
+            <div className="forgot"><span onClick={() => navigate("/forgot-password?role=admin")} style={{cursor:"pointer"}}>Forgot Password?</span></div>
             <button className="signup-btn" type="submit" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </button>
