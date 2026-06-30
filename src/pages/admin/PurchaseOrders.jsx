@@ -56,6 +56,19 @@ function PurchaseOrders() {
     setForm((f) => ({ ...f, [name]: value }));
   };
 
+  const orderSummary = orders.reduce(
+    (acc, order) => {
+      const status = (order.status || "Pending").toLowerCase();
+      acc.total += 1;
+      if (status === "accepted") acc.accepted += 1;
+      else if (status === "rejected") acc.rejected += 1;
+      else acc.pending += 1;
+      return acc;
+    },
+    { total: 0, accepted: 0, rejected: 0, pending: 0 }
+  );
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(""); setSuccess("");
@@ -111,6 +124,25 @@ function PurchaseOrders() {
       {error   && <p className="api-error-inline">{error}</p>}
       {success && <p className="pf-saved-msg">{success}</p>}
 
+      <div className="po-summary-grid">
+        <div className="po-summary-card">
+          <span className="po-summary-title">Total Purchase Orders</span>
+          <span className="po-summary-value">{orderSummary.total}</span>
+        </div>
+        <div className="po-summary-card">
+          <span className="po-summary-title">Pending</span>
+          <span className="po-summary-value">{orderSummary.pending}</span>
+        </div>
+        <div className="po-summary-card">
+          <span className="po-summary-title">Accepted</span>
+          <span className="po-summary-value">{orderSummary.accepted}</span>
+        </div>
+        <div className="po-summary-card">
+          <span className="po-summary-title">Rejected</span>
+          <span className="po-summary-value">{orderSummary.rejected}</span>
+        </div>
+      </div>
+
       {showForm && (
         <div className="po-form-card">
           <h4 className="po-form-title">New Purchase Order</h4>
@@ -163,16 +195,17 @@ function PurchaseOrders() {
                   value={form.deliveryDate} onChange={handleChange}
                 />
               </div>
-              <div className="po-field">
-                <label>Notes <span style={{ fontWeight: 400, color: "#9CA3AF" }}>(optional)</span></label>
-                <input
+              <div className="po-field po-field-full">
+                <label>Notes <span className="po-optional">(optional)</span></label>
+                <textarea
                   name="notes" value={form.notes}
                   onChange={handleChange} placeholder="Additional notes..."
+                  rows={4}
                 />
               </div>
             </div>
 
-            <div className="vm-actions" style={{ marginTop: "12px" }}>
+            <div className="vm-actions" style={{ marginTop: "16px" }}>
               <button type="button" className="vm-btn-cancel"
                 onClick={() => { setShowForm(false); setError(""); }}>
                 Cancel

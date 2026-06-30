@@ -14,10 +14,14 @@ function Profile() {
   const [draft, setDraft] = useState(DEFAULT);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const admin = JSON.parse(localStorage.getItem("admin") || "null");
-    if (!admin?.id) return;
+    if (!admin?.id) {
+      setLoading(false);
+      return;
+    }
     fetch(`/api/admin/profile/${admin.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load profile");
@@ -27,7 +31,8 @@ function Profile() {
         setProfile(data);
         setDraft(data);
       })
-      .catch(() => setError("Failed to load profile."));
+      .catch(() => setError("Failed to load profile."))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleEdit = () => {
@@ -68,10 +73,17 @@ function Profile() {
     { key: "contact", label: "Contact Number", type: "tel" },
   ];
 
+  if (loading) {
+    return <div className="vm-empty">Loading profile...</div>;
+  }
+
   return (
     <div className="pf-wrap">
       <div className="pf-header">
-        <h3 className="dh-section-title">Profile</h3>
+        <div>
+          <h3 className="dh-section-title">Admin Profile</h3>
+          <p className="pf-intro">Manage your admin contact details and account information.</p>
+        </div>
         {!editing && <button className="pf-edit-btn" onClick={handleEdit}>Edit Profile</button>}
       </div>
 
@@ -79,14 +91,28 @@ function Profile() {
       {error && <p className="api-error-inline">{error}</p>}
 
       <div className="pf-card">
-        <div className="pf-avatar">{(profile.name || "A").charAt(0).toUpperCase()}</div>
+        <div className="pf-sidebar">
+          <div className="pf-avatar">{(profile.name || "A").charAt(0).toUpperCase()}</div>
+          <div className="pf-info">
+            <h4>{profile.name || "Admin User"}</h4>
+            <p className="pf-subtitle">Administrator</p>
+            <p className="pf-meta">{profile.email || "No email provided"}</p>
+            <p className="pf-meta">{profile.contact || "No contact number"}</p>
+          </div>
+        </div>
 
         <div className="pf-details">
           {FIELDS.map(({ key, label, type }) => (
             <div className="pf-row" key={key}>
               <span className="pf-label">{label}</span>
               {editing ? (
-                <input className="pf-input" type={type} name={key} value={draft[key] || ""} onChange={handleChange} />
+                <input
+                  className="pf-input"
+                  type={type}
+                  name={key}
+                  value={draft[key] || ""}
+                  onChange={handleChange}
+                />
               ) : (
                 <span className="pf-value">{profile[key] || "—"}</span>
               )}
