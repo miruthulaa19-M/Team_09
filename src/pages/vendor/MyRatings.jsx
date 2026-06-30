@@ -48,7 +48,7 @@ function MyRatings() {
                     </p>
                     <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
                       <Stars count={Math.round(parseFloat(data.overall_rating || 0))} />
-                      <span style={{ fontSize:"28px", fontWeight:800, color:"#de945f" }}>
+                      <span style={{ fontSize:"28px", fontWeight:800, color:"#1E3A8A" }}>
                         {data.overall_rating ? parseFloat(data.overall_rating).toFixed(1) : "N/A"}
                       </span>
                     </div>
