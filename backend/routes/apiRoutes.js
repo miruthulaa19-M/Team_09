@@ -5,6 +5,8 @@ const router = express.Router();
 
 router.post("/forgot-password", controller.forgotPassword);
 router.post("/admin-forgot-password", controller.adminForgotPassword);
+router.post("/check-email", controller.checkEmail);
+router.post("/reset-password-direct", controller.resetPasswordDirect);
 router.get("/reset-password/:token", controller.validateResetToken);
 router.post("/reset-password/:token", controller.resetPassword);
 
@@ -23,6 +25,7 @@ router.patch("/vendors/:id/status", controller.updateVendorStatus);
 
 router.get("/vendor/dashboard/:vendor_id", controller.getVendorDashboardStats);
 router.get("/dashboard/admin", controller.getAdminDashboardStats);
+router.get("/dashboard/admin/purchase-summary", controller.getAdminPurchaseSummary);
 
 router.get("/requirements", controller.listRequirements);
 router.post("/requirements", controller.createRequirement);

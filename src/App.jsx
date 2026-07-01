@@ -16,7 +16,6 @@ import PurchaseOrders   from "./pages/admin/PurchaseOrders";
 
 import VendorDashboard  from "./pages/vendor/VendorDashboard";
 import VendorProfile    from "./pages/vendor/VendorProfile";
-import VendorProducts   from "./pages/vendor/VendorProducts";
 import Requirements     from "./pages/vendor/Requirements";
 import SubmitQuotation  from "./pages/vendor/SubmitQuotation";
 import MyQuotations     from "./pages/vendor/MyQuotations";
@@ -55,7 +54,6 @@ function App() {
         {/* Vendor Portal — all protected */}
         <Route path="/vendor/dashboard"        element={<VendorRoute><VendorDashboard /></VendorRoute>} />
         <Route path="/vendor/profile"          element={<VendorRoute><VendorProfile /></VendorRoute>} />
-        <Route path="/vendor/products"         element={<VendorRoute><VendorProducts /></VendorRoute>} />
         <Route path="/vendor/requirements"     element={<VendorRoute><Requirements /></VendorRoute>} />
         <Route path="/vendor/submit-quotation" element={<VendorRoute><SubmitQuotation /></VendorRoute>} />
         <Route path="/vendor/my-quotations"    element={<VendorRoute><MyQuotations /></VendorRoute>} />

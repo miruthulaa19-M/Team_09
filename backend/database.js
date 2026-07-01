@@ -116,6 +116,16 @@ function createSchema() {
     );
   `);
 
+  if (!hasColumn("admins", "name")) {
+    db.exec("ALTER TABLE admins ADD COLUMN name TEXT NOT NULL DEFAULT 'Admin User';");
+  }
+  if (!hasColumn("admins", "contact")) {
+    db.exec("ALTER TABLE admins ADD COLUMN contact TEXT DEFAULT '';");
+  }
+  if (!hasColumn("admins", "address")) {
+    db.exec("ALTER TABLE admins ADD COLUMN address TEXT DEFAULT '';");
+  }
+
   if (!hasColumn("purchase_history", "po_number")) {
     db.exec("ALTER TABLE purchase_history ADD COLUMN po_number TEXT DEFAULT '';");
   }

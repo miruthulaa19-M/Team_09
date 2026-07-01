@@ -1,70 +1,78 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
 
-const MONTHLY = [
-  { month: "Jan", value: 12 }, { month: "Feb", value: 18 },
-  { month: "Mar", value: 9  }, { month: "Apr", value: 24 },
-  { month: "May", value: 16 }, { month: "Jun", value: 30 },
-  { month: "Jul", value: 22 }, { month: "Aug", value: 14 },
-  { month: "Sep", value: 27 }, { month: "Oct", value: 19 },
-  { month: "Nov", value: 33 }, { month: "Dec", value: 28 },
+const STAT_META = [
+  { key: "total_vendors",              label: "Total Vendors",       icon: "🏢", color: "#3B82F6", bg: "#EFF6FF" },
+  { key: "total_quotations",           label: "Quotations",          icon: "📋", color: "#8B5CF6", bg: "#F5F3FF" },
+  { key: "total_accepted_quotations",  label: "Accepted Quotations", icon: "✅", color: "#10B981", bg: "#ECFDF5" },
+  { key: "total_purchases",            label: "Total Purchases",     icon: "🛒", color: "#F59E0B", bg: "#FFFBEB" },
 ];
 
-const MAX = Math.max(...MONTHLY.map((m) => m.value));
+const QUICK = [
+  { label: "Vendor Management", icon: "👥", to: "/admin-dashboard/vendor-management" },
+  { label: "Purchase History",  icon: "📦", to: "/admin-dashboard/purchase-history"  },
+  { label: "Vendor List",       icon: "📄", to: "/admin-dashboard/vendor-list"       },
+  { label: "Purchase Orders",   icon: "🧾", to: "/admin-dashboard/purchase-orders"   },
+];
 
 function DashboardHome() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("/api/dashboard/admin")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load dashboard stats");
-        return res.json();
-      })
-      .then((data) => setStats(data))
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(setStats)
       .catch(() => setError("Failed to load dashboard stats."))
       .finally(() => setLoading(false));
   }, []);
 
-  const STATS = stats
-    ? [
-        { label: "Total Vendors Registered", value: stats.total_vendors ?? 0 },
-        { label: "Total Quotations Submitted", value: stats.total_quotations ?? 0 },
-        { label: "Total Accepted Quotations", value: stats.total_accepted_quotations ?? 0 },
-        { label: "Total Purchases", value: stats.total_purchases ?? 0 },
-      ]
-    : [];
+  const now = new Date();
+  const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening";
+  const dateStr  = now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   return (
     <div className="dh-wrap">
       {loading && <p className="vm-empty">Loading dashboard...</p>}
-      {error && <p className="api-error-inline">{error}</p>}
+      {error   && <p className="api-error-inline">{error}</p>}
+
       {!loading && !error && (
         <>
+          {/* Welcome banner */}
+          <div className="dh-banner">
+            <div>
+              <p className="dh-greeting">{greeting}, Admin 👋</p>
+              <p className="dh-date">{dateStr}</p>
+            </div>
+            <div className="dh-banner-badge">Admin Portal</div>
+          </div>
+
+          {/* Stat cards */}
           <div className="dh-cards">
-            {STATS.map(({ label, value }) => (
-              <div className="dh-card" key={label}>
-                <p className="dh-card-value">{value}</p>
-                <p className="dh-card-label">{label}</p>
+            {STAT_META.map(({ key, label, icon, color, bg }) => (
+              <div className="dh-card" key={key} style={{ "--card-color": color, "--card-bg": bg }}>
+                <div className="dh-card-icon">{icon}</div>
+                <div>
+                  <p className="dh-card-value">{stats?.[key] ?? 0}</p>
+                  <p className="dh-card-label">{label}</p>
+                </div>
               </div>
             ))}
           </div>
 
-          <div className="dh-chart-box">
-            <h3 className="dh-section-title">Monthly Purchase Summary</h3>
-            <div className="dh-chart">
-              {MONTHLY.map(({ month, value }) => (
-                <div className="dh-bar-group" key={month}>
-                  <div className="dh-bar-wrap">
-                    <span className="dh-bar-val">{value}</span>
-                    <div className="dh-bar" style={{ height: `${(value / MAX) * 180}px` }} />
-                  </div>
-                  <span className="dh-bar-month">{month}</span>
-                </div>
-              ))}
-            </div>
+          {/* Quick actions */}
+          <div className="dh-section-header">Quick Actions</div>
+          <div className="dh-quick">
+            {QUICK.map(({ label, icon, to }) => (
+              <button key={to} className="dh-quick-btn" onClick={() => navigate(to)}>
+                <span className="dh-quick-icon">{icon}</span>
+                <span className="dh-quick-label">{label}</span>
+                <span className="dh-quick-arrow">→</span>
+              </button>
+            ))}
           </div>
         </>
       )}

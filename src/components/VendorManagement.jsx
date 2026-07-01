@@ -4,29 +4,67 @@ import "../styles/AdminDashboard.css";
 function StarRatingPopup({ vendorName, onSubmit, onClose }) {
   const [hovered, setHovered] = useState(0);
   const [selected, setSelected] = useState(0);
+  const [comment, setComment] = useState("");
+
+  const labels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
+  const colors = ["", "#EF4444", "#F97316", "#EAB308", "#22C55E", "#10B981"];
+  const active = hovered || selected;
 
   return (
     <div className="vm-overlay">
       <div className="vm-popup">
-        <h3 className="vm-popup-title">Rate Vendor</h3>
-        <p className="vm-popup-sub">{vendorName}</p>
-        <div className="vm-stars">
+        <div className="vm-popup-header">
+          <div className="vm-popup-icon">⭐</div>
+          <h3 className="vm-popup-title">Rate Vendor</h3>
+          <p className="vm-popup-sub">{vendorName}</p>
+        </div>
+
+        <div className="vm-stars-row">
           {[1, 2, 3, 4, 5].map((s) => (
-            <span
+            <button
               key={s}
-              className={`vm-star${s <= (hovered || selected) ? " filled" : ""}`}
+              type="button"
+              className={`vm-star-btn${s <= active ? " filled" : ""}`}
+              style={s <= active ? { color: colors[active] } : {}}
               onMouseEnter={() => setHovered(s)}
               onMouseLeave={() => setHovered(0)}
               onClick={() => setSelected(s)}
-            >★</span>
+              aria-label={`${s} star`}
+            >★</button>
           ))}
         </div>
-        <p className="vm-star-label">
-          {selected ? `${selected} Star${selected > 1 ? "s" : ""}` : "Select a rating"}
-        </p>
+
+        <div className="vm-star-label-row">
+          {active ? (
+            <span className="vm-star-label-pill" style={{ background: colors[active] + "22", color: colors[active] }}>
+              {active} / 5 — {labels[active]}
+            </span>
+          ) : (
+            <span className="vm-star-label-empty">Click a star to rate</span>
+          )}
+        </div>
+
+        <div className="vm-popup-comment">
+          <label className="vm-comment-label">Comments (optional)</label>
+          <textarea
+            className="vm-comment-input"
+            placeholder="Add a comment about this vendor..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={3}
+          />
+        </div>
+
         <div className="vm-popup-actions">
           <button className="vm-btn-cancel" onClick={onClose}>Cancel</button>
-          <button className="vm-btn-submit" disabled={!selected} onClick={() => onSubmit(selected)}>Submit</button>
+          <button
+            className="vm-btn-submit"
+            disabled={!selected}
+            onClick={() => onSubmit(selected, comment)}
+            style={selected ? { background: colors[selected] } : {}}
+          >
+            Submit Rating
+          </button>
         </div>
       </div>
     </div>
@@ -80,12 +118,12 @@ function VendorManagement() {
     }
   };
 
-  const handleRatingSubmit = async (stars) => {
+  const handleRatingSubmit = async (stars, comment) => {
     try {
       const res = await fetch(`/api/quotations/${popup.id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "Accepted", rating: stars, comments: "" }),
+        body: JSON.stringify({ status: "Accepted", rating: stars, comments: comment || "" }),
       });
       if (!res.ok) throw new Error("Failed to accept quotation");
       setPopup(null);
