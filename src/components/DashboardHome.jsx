@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AdminDashboard.css";
+import API_BASE from "../api";
 
 const STAT_META = [
   { key: "total_vendors",              label: "Total Vendors",       icon: "🏢", color: "#3B82F6", bg: "#EFF6FF" },
@@ -23,7 +24,7 @@ function DashboardHome() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("/api/dashboard/admin")
+    fetch(`${API_BASE}/api/dashboard/admin`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(setStats)
       .catch(() => setError("Failed to load dashboard stats."))

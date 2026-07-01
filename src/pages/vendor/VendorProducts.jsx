@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
-
-const BASE = "http://localhost:5000";
+import API_BASE from "../../api";
 const CATEGORIES = ["💻 Electronics", "🪑 Furniture", "🖨️ Office Supplies"];
 const EMPTY = { category: "", product_name: "", description: "" };
 
@@ -18,7 +17,7 @@ function VendorProducts() {
 
   const load = () => {
     setLoading(true);
-    fetch(`${BASE}/api/vendor-products/${vendor_id}`)
+    fetch(`${API_BASE}/api/vendor-products/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load products"); return r.json(); })
       .then(d => { setProducts(d); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
@@ -33,7 +32,7 @@ function VendorProducts() {
     setError(""); setSuccess("");
     if (!form.category || !form.product_name) { setError("Category and Product Name are required."); return; }
 
-    const url    = editId ? `${BASE}/api/vendor-products/${editId}` : `${BASE}/api/vendor-products`;
+    const url    = editId ? `${API_BASE}/api/vendor-products/${editId}` : `${API_BASE}/api/vendor-products`;
     const method = editId ? "PUT" : "POST";
     const body   = editId ? form : { ...form, vendor_id };
 
@@ -53,7 +52,7 @@ function VendorProducts() {
 
   const handleDelete = id => {
     if (!window.confirm("Delete this product?")) return;
-    fetch(`${BASE}/api/vendor-products/${id}`, { method: "DELETE" })
+    fetch(`${API_BASE}/api/vendor-products/${id}`, { method: "DELETE" })
       .then(r => { if (!r.ok) throw new Error("Delete failed"); return r.json(); })
       .then(() => { setSuccess("Product deleted."); load(); setTimeout(() => setSuccess(""), 3000); })
       .catch(e => setError(e.message));

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "../styles/AdminDashboard.css";
+import API_BASE from "../api";
 
 const DEFAULT = {
   name: "Admin User",
@@ -22,7 +23,7 @@ function Profile() {
       setLoading(false);
       return;
     }
-    fetch(`/api/admin/profile/${admin.id}`)
+    fetch(`${API_BASE}/api/admin/profile/${admin.id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load profile");
         return res.json();
@@ -61,7 +62,7 @@ function Profile() {
       return;
     }
     try {
-      const res = await fetch(`/api/admin/profile/${admin.id}`, {
+      const res = await fetch(`${API_BASE}/api/admin/profile/${admin.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(draft),

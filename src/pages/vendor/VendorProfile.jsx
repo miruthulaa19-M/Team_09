@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
-
-const BASE = "http://localhost:5000";
+import API_BASE from "../../api";
 
 const READONLY_FIELDS = ["vendor_name", "email", "category"];
 
@@ -26,7 +25,7 @@ function VendorProfile() {
   const [success,  setSuccess]  = useState("");
 
   useEffect(() => {
-    fetch(`${BASE}/api/vendors/${vendor_id}`)
+    fetch(`${API_BASE}/api/vendors/${vendor_id}`)
       .then(r => {
         if (!r.ok) throw new Error("Failed to load profile");
         return r.json();
@@ -37,7 +36,7 @@ function VendorProfile() {
 
   const handleSave = () => {
     setError(""); setSuccess("");
-    fetch(`${BASE}/api/vendors/${vendor_id}`, {
+    fetch(`${API_BASE}/api/vendors/${vendor_id}`, {
       method:  "PUT",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({

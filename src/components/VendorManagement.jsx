@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "../styles/AdminDashboard.css";
+import API_BASE from "../api";
 
 function StarRatingPopup({ vendorName, onSubmit, onClose }) {
   const [hovered, setHovered] = useState(0);
@@ -79,7 +80,7 @@ function VendorManagement() {
   const [loading, setLoading] = useState(true);
 
   const load = () => {
-    fetch("/api/quotations")
+    fetch(`${API_BASE}/api/quotations`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load quotations");
         return res.json();
@@ -106,7 +107,7 @@ function VendorManagement() {
 
   const handleReject = async (id) => {
     try {
-      const res = await fetch(`/api/quotations/${id}/status`, {
+      const res = await fetch(`${API_BASE}/api/quotations/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Rejected" }),
@@ -120,7 +121,7 @@ function VendorManagement() {
 
   const handleRatingSubmit = async (stars, comment) => {
     try {
-      const res = await fetch(`/api/quotations/${popup.id}/status`, {
+      const res = await fetch(`${API_BASE}/api/quotations/${popup.id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Accepted", rating: stars, comments: comment || "" }),

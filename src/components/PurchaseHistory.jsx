@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "../styles/AdminDashboard.css";
+import API_BASE from "../api";
 
 const COLORS = ["#1E3A8A","#3B82F6","#10B981","#F59E0B","#EF4444","#8B5CF6","#EC4899","#06B6D4"];
 
@@ -76,7 +77,7 @@ function PurchaseHistory() {
 
   const load = (q = "") => {
     const query = q ? `?search=${encodeURIComponent(q)}` : "";
-    fetch(`/api/purchase-history${query}`)
+    fetch(`${API_BASE}/api/purchase-history${query}`)
       .then(res => { if (!res.ok) throw new Error(); return res.json(); })
       .then(data => setRecords(Array.isArray(data) ? data : []))
       .catch(() => setError("Failed to load purchase history."))

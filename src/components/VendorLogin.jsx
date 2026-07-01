@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
+import API_BASE from "../api";
 
 const emailRegex    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
@@ -71,7 +72,7 @@ function VendorLogin() {
     if (Object.values(errs).some(Boolean)) return;
     setLoading(true);
     try {
-      const res  = await fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyName: regValues.companyName, vendorName: regValues.vendorName, contact: regValues.contact, email: regValues.email, password: regValues.password, category: regValues.category, products: regValues.products || [] }) });
+      const res  = await fetch(`${API_BASE}/api/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyName: regValues.companyName, vendorName: regValues.vendorName, contact: regValues.contact, email: regValues.email, password: regValues.password, category: regValues.category, products: regValues.products || [] }) });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setSuccess(data.message);
@@ -88,7 +89,7 @@ function VendorLogin() {
     if (Object.values(errs).some(Boolean)) return;
     setLoading(true);
     try {
-      const res  = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loginValues) });
+      const res  = await fetch(`${API_BASE}/api/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loginValues) });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       localStorage.setItem("vendor_id",    data.vendor.id);
