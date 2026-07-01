@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
-
-const BASE = "http://localhost:5000";
+import API_BASE from "../../api";
 
 function Requirements() {
   const vendor_id = localStorage.getItem("vendor_id");
@@ -15,7 +14,7 @@ function Requirements() {
   const [updatingId, setUpdatingId] = useState(null);
 
   const loadRequirements = () => {
-    fetch(`${BASE}/api/requirements/vendor/${vendor_id}`)
+    fetch(`${API_BASE}/api/requirements/vendor/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load requirements"); return r.json(); })
       .then(d => { setReqs(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
@@ -32,7 +31,7 @@ function Requirements() {
 
   const handleDecision = (req, status) => {
     setUpdatingId(req.id);
-    fetch(`${BASE}/api/requirements/${req.id}/status`, {
+    fetch(`${API_BASE}/api/requirements/${req.id}/status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),

@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
-
-const BASE = "http://localhost:5000";
+import API_BASE from "../../api";
 
 function VendorDashboard() {
   const vendor_id = localStorage.getItem("vendor_id");
@@ -14,8 +13,8 @@ function VendorDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${BASE}/api/vendor/dashboard/${vendor_id}`).then(r => { if (!r.ok) throw new Error("Failed to load dashboard"); return r.json(); }),
-      fetch(`${BASE}/api/purchase-history/vendor/${vendor_id}`).then(r => { if (!r.ok) throw new Error("Failed to load orders"); return r.json(); }),
+      fetch(`${API_BASE}/api/vendor/dashboard/${vendor_id}`).then(r => { if (!r.ok) throw new Error("Failed to load dashboard"); return r.json(); }),
+      fetch(`${API_BASE}/api/purchase-history/vendor/${vendor_id}`).then(r => { if (!r.ok) throw new Error("Failed to load orders"); return r.json(); }),
     ])
       .then(([dashData, orderData]) => {
         setStats(dashData);

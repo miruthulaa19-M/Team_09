@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "../../styles/AdminDashboard.css";
+import API_BASE from "../../api";
 
 const CATEGORIES = [
   "Electronics",
@@ -15,8 +16,8 @@ const EMPTY_FORM = {
   unit: "", deliveryDate: "", notes: "",
 };
 
-const API_PO  = "http://localhost:5000/api/purchase-orders";
-const API_VEN = "http://localhost:5000/api/vendors";
+const API_PO  = `${API_BASE}/api/purchase-orders`;
+const API_VEN = `${API_BASE}/api/vendors`;
 
 function PurchaseOrders() {
   const [orders,     setOrders]     = useState([]);

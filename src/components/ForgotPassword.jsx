@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "../styles/Login.css";
+import API_BASE from "../api";
 
 const emailRegex    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
@@ -27,7 +28,7 @@ function ForgotPassword() {
     if (!emailRegex.test(email)) { setEmailError("Email must be a valid @gmail.com address."); return; }
     setLoading(true);
     try {
-      const res  = await fetch("/api/check-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, role }) });
+      const res  = await fetch(`${API_BASE}/api/check-email`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, role }) });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setStep("reset");
@@ -47,7 +48,7 @@ function ForgotPassword() {
     if (Object.keys(errs).length) return;
     setLoading(true);
     try {
-      const res  = await fetch("/api/reset-password-direct", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, role }) });
+      const res  = await fetch(`${API_BASE}/api/reset-password-direct`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, role }) });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setSuccess("Password updated successfully! Redirecting to login...");

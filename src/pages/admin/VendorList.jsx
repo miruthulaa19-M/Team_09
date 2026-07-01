@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "../../styles/AdminDashboard.css";
+import API_BASE from "../../api";
 
 function VendorList() {
   const [vendors, setVendors] = useState([]);
@@ -9,7 +10,7 @@ function VendorList() {
 
   const fetchVendors = async () => {
     try {
-      const res  = await fetch("/api/vendors");
+      const res  = await fetch(`${API_BASE}/api/vendors`);
       const data = await res.json();
       setVendors(Array.isArray(data) ? data : []);
     } catch {
@@ -23,7 +24,7 @@ function VendorList() {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/vendors");
+        const res = await fetch(`${API_BASE}/api/vendors`);
         const data = await res.json();
         if (isMounted) {
           setVendors(Array.isArray(data) ? data : []);
@@ -41,7 +42,7 @@ function VendorList() {
 
   const updateStatus = async (id, status) => {
     try {
-      const res = await fetch(`/api/vendors/${id}/status`, {
+      const res = await fetch(`${API_BASE}/api/vendors/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

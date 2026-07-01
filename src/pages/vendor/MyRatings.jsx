@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
-
-const BASE = "http://localhost:5000";
+import API_BASE from "../../api";
 
 function Stars({ count }) {
   return (
@@ -22,7 +21,7 @@ function MyRatings() {
   const [error,   setError]   = useState("");
 
   useEffect(() => {
-    fetch(`${BASE}/api/ratings/vendor/${vendor_id}`)
+    fetch(`${API_BASE}/api/ratings/vendor/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load ratings"); return r.json(); })
       .then(d => { setData(d); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });

@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
-
-const BASE = "http://localhost:5000";
+import API_BASE from "../../api";
 
 function MyOrders() {
   const vendor_id = localStorage.getItem("vendor_id");
@@ -12,7 +11,7 @@ function MyOrders() {
   const [error,   setError]   = useState("");
 
   useEffect(() => {
-    fetch(`${BASE}/api/purchase-history/vendor/${vendor_id}`)
+    fetch(`${API_BASE}/api/purchase-history/vendor/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load orders"); return r.json(); })
       .then(d => { setOrders(d); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });

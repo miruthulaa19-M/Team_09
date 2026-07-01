@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
+import API_BASE from "../api";
 
 const emailRegex    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/;
@@ -46,7 +47,7 @@ function AdminLogin() {
     if (Object.values(errs).some(Boolean)) return;
     setLoading(true);
     try {
-      const res  = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loginValues) });
+      const res  = await fetch(`${API_BASE}/api/admin-login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loginValues) });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setSuccess(data.message);
@@ -64,7 +65,7 @@ function AdminLogin() {
     if (Object.values(errs).some(Boolean)) return;
     setLoading(true);
     try {
-      const res  = await fetch("/api/admin-register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: regValues.email, password: regValues.password }) });
+      const res  = await fetch(`${API_BASE}/api/admin-register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: regValues.email, password: regValues.password }) });
       const data = await res.json();
       if (!res.ok) { setApiError(data.error); return; }
       setSuccess(data.message);

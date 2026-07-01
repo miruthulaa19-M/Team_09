@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
+import API_BASE from "../../api";
 
 function MyQuotations() {
   const vendor_id = localStorage.getItem("vendor_id");
@@ -16,7 +17,7 @@ function MyQuotations() {
       return;
     }
 
-    fetch(`/api/quotations/vendor/${vendor_id}`)
+    fetch(`${API_BASE}/api/quotations/vendor/${vendor_id}`)
       .then(r => { if (!r.ok) throw new Error("Failed to load quotations"); return r.json(); })
       .then(d => { setQuotations(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });

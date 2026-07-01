@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import VendorSidebar from "../../components/vendor/VendorSidebar";
 import VendorNavbar  from "../../components/vendor/VendorNavbar";
 import "../../styles/VendorPortal.css";
+import API_BASE from "../../api";
 
 function SubmitQuotation() {
   const vendor_id  = localStorage.getItem("vendor_id");
@@ -40,7 +41,7 @@ function SubmitQuotation() {
     }
 
     setLoading(true);
-    fetch("/api/quotations", {
+    fetch(`${API_BASE}/api/quotations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
