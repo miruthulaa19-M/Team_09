@@ -3,13 +3,12 @@ import { NavLink, useNavigate } from "react-router-dom";
 import "../../styles/VendorPortal.css";
 
 const LINKS = [
-  { to: "/vendor/dashboard",      label: "Dashboard"      },
-  { to: "/vendor/products",       label: "My Products"    },
-  { to: "/vendor/requirements",   label: "Requirements"   },
-  { to: "/vendor/my-quotations",  label: "My Quotations"  },
-  { to: "/vendor/my-orders",      label: "My Orders"      },
-  { to: "/vendor/my-ratings",     label: "My Ratings"     },
-  { to: "/vendor/profile",        label: "Profile"        },
+  { to: "/vendor/dashboard",      label: "Dashboard"     },
+  { to: "/vendor/requirements",   label: "Requirements"  },
+  { to: "/vendor/my-quotations",  label: "My Quotations" },
+  { to: "/vendor/my-orders",      label: "My Orders"     },
+  { to: "/vendor/my-ratings",     label: "My Ratings"    },
+  { to: "/vendor/profile",        label: "Profile"       },
 ];
 
 function VendorSidebar() {

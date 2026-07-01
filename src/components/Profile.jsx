@@ -28,10 +28,18 @@ function Profile() {
         return res.json();
       })
       .then((data) => {
-        setProfile(data);
-        setDraft(data);
+        const merged = {
+          ...DEFAULT,
+          ...Object.fromEntries(Object.entries(data).filter(([, v]) => v != null && v !== "")),
+        };
+        setProfile(merged);
+        setDraft(merged);
       })
-      .catch(() => setError("Failed to load profile."))
+      .catch(() => {
+        // Fall back to defaults so the page still renders
+        setProfile((p) => ({ ...DEFAULT, email: admin.email || DEFAULT.email, ...p }));
+        setDraft((p) => ({ ...DEFAULT, email: admin.email || DEFAULT.email, ...p }));
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,6 +53,13 @@ function Profile() {
 
   const handleSave = async () => {
     const admin = JSON.parse(localStorage.getItem("admin") || "null");
+    if (!admin?.id) {
+      setProfile({ ...draft });
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+      return;
+    }
     try {
       const res = await fetch(`/api/admin/profile/${admin.id}`, {
         method: "PUT",

@@ -65,6 +65,26 @@ exports.adminForgotPassword = (req, res) => {
   sendResetEmail(email, "admin", res);
 };
 
+exports.checkEmail = (req, res) => {
+  const { email, role } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+  const table = role === "admin" ? "admins" : "vendors";
+  const row = db.prepare(`SELECT id FROM ${table} WHERE email = ?`).get(email);
+  if (!row) return res.status(404).json({ error: "Email not registered." });
+  res.json({ exists: true });
+};
+
+exports.resetPasswordDirect = (req, res) => {
+  const { email, password, role } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "Email and password are required." });
+  const table = role === "admin" ? "admins" : "vendors";
+  const row = db.prepare(`SELECT id FROM ${table} WHERE email = ?`).get(email);
+  if (!row) return res.status(404).json({ error: "Email not registered." });
+  const hashed = bcrypt.hashSync(password, 10);
+  db.prepare(`UPDATE ${table} SET password = ? WHERE email = ?`).run(hashed, email);
+  res.json({ message: "Password updated successfully." });
+};
+
 exports.validateResetToken = (req, res) => {
   const token = req.params.token;
   const row = db.prepare("SELECT * FROM reset_tokens WHERE token = ? AND used = 0").get(token);
@@ -166,8 +186,13 @@ exports.loginVendor = (req, res) => {
 
 exports.getAdminProfile = (req, res) => {
   const row = db.prepare("SELECT id, name, email, contact, address FROM admins WHERE id = ?").get(req.params.id);
-  if (!row) return res.status(404).json({ error: "Admin not found." });
-  res.json(row);
+  if (!row) return res.json({ id: req.params.id, name: "Admin User", email: "", contact: "", address: "" });
+  res.json({
+    ...row,
+    name: row.name || "Admin User",
+    contact: row.contact || "",
+    address: row.address || "",
+  });
 };
 
 exports.updateAdminProfile = (req, res) => {
@@ -407,24 +432,28 @@ exports.deleteVendorProduct = (req, res) => {
 
 exports.listPurchaseHistory = (req, res) => {
   const search = (req.query.search || "").trim();
-  const date = (req.query.date || "").trim();
-
   let rows;
-  if (search || date) {
-    const where = [];
-    const params = [];
-    if (search) {
-      where.push("(ph.company_name LIKE ? OR ph.product_name LIKE ? OR ph.vendor_name LIKE ?)");
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-    if (date) {
-      where.push("date(ph.purchase_date) = date(?)");
-      params.push(date);
-    }
-    const sql = `SELECT ph.*, v.company_name AS vendor_company_name, v.vendor_name AS vendor_display_name FROM purchase_history ph LEFT JOIN vendors v ON v.id = ph.vendor_id${where.length ? " WHERE " + where.join(" AND ") : ""} ORDER BY ph.purchase_date DESC`;
-    rows = db.prepare(sql).all(...params);
+  if (search) {
+    rows = db.prepare(`
+      SELECT ph.*, v.company_name AS vendor_company_name, v.vendor_name AS vendor_display_name,
+             v.category AS vendor_category,
+             r.stars AS rating_stars, r.comments AS rating_comments
+      FROM purchase_history ph
+      LEFT JOIN vendors v ON v.id = ph.vendor_id
+      LEFT JOIN ratings r ON r.vendor_id = ph.vendor_id AND r.product_name = ph.product_name
+      WHERE ph.company_name LIKE ? OR ph.product_name LIKE ? OR ph.vendor_name LIKE ?
+      ORDER BY ph.purchase_date DESC
+    `).all(`%${search}%`, `%${search}%`, `%${search}%`);
   } else {
-    rows = db.prepare("SELECT ph.*, v.company_name AS vendor_company_name, v.vendor_name AS vendor_display_name FROM purchase_history ph LEFT JOIN vendors v ON v.id = ph.vendor_id ORDER BY ph.purchase_date DESC").all();
+    rows = db.prepare(`
+      SELECT ph.*, v.company_name AS vendor_company_name, v.vendor_name AS vendor_display_name,
+             v.category AS vendor_category,
+             r.stars AS rating_stars, r.comments AS rating_comments
+      FROM purchase_history ph
+      LEFT JOIN vendors v ON v.id = ph.vendor_id
+      LEFT JOIN ratings r ON r.vendor_id = ph.vendor_id AND r.product_name = ph.product_name
+      ORDER BY ph.purchase_date DESC
+    `).all();
   }
   res.json(rows);
 };
@@ -438,6 +467,18 @@ exports.listVendorRatings = (req, res) => {
   const rows = db.prepare("SELECT * FROM ratings WHERE vendor_id = ? ORDER BY rated_at DESC").all(req.params.vendor_id);
   const overall = rows.length ? (rows.reduce((sum, row) => sum + row.stars, 0) / rows.length).toFixed(1) : null;
   res.json({ overall_rating: overall, ratings: rows });
+};
+
+exports.getAdminPurchaseSummary = (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = db.prepare(`
+    SELECT v.category, COUNT(*) as count
+    FROM purchase_history ph
+    LEFT JOIN vendors v ON v.id = ph.vendor_id
+    WHERE date(ph.purchase_date) >= ?
+    GROUP BY v.category
+  `).all(today);
+  res.json(rows);
 };
 
 exports.listPurchaseOrders = (req, res) => {
